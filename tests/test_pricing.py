@@ -140,3 +140,23 @@ def test_installment_floor_up_to_three_times():
     # 3x would be R$ 40.00, under the floor, so 2x is the ceiling.
     assert count == 2
     assert value == Decimal("60.00")
+
+
+def test_installment_floor_applies_through_the_product_lookup(db):
+    """Same rule as above, exercised through the whole path instead of the function.
+
+    A R$ 120.00 product is inserted because the catalogue has nothing cheap
+    enough to reach the floor. This covers database to installment, not just
+    the arithmetic.
+    """
+    db.execute(
+        """INSERT INTO products VALUES
+           (9001, 'Ukulele de teste', 9, 120.00, 'Produto sintetico de teste',
+            5, 'active', '{}', '2026-01-01')"""
+    )
+
+    price = price_for_product(db, 9001)
+
+    assert price.final_price == Decimal("120.00")
+    assert price.max_installments == 2
+    assert price.installment_value == Decimal("60.00")

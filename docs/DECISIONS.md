@@ -23,6 +23,7 @@ quando existe, onde a escolha quebra.
 | [D-12](#d-12--modelo-de-decisão-dedicado-fica-para-depois) | Modelo de decisão fica para depois | JEV encaixaria na classificação da mensagem, mas está em acesso antecipado. |
 | [D-13](#d-13--teste-antes-do-código) | Teste antes do código | O teste é escrito antes da implementação e precisa ser visto falhando. |
 | [D-14](#d-14--nenhum-cálculo-feito-pelo-modelo) | Nenhum cálculo feito pelo modelo | Toda conta é feita em Python e entregue pronta ao modelo. |
+| [D-15](#d-15--escopo-de-segurança-do-protótipo) | Escopo de segurança do protótipo | A defesa está na arquitetura. Limites de uso ficam para a camada do canal. |
 
 ---
 
@@ -311,3 +312,60 @@ R$ 89,75. O Tom nunca divide 359 por 4.
 
 **Onde quebra.** Toda conta nova exige mudança de código, em vez de um ajuste no
 prompt.
+
+
+---
+
+## D-15 · Escopo de segurança do protótipo
+
+**Problema.** Um agente que conversa com o público tem três riscos: vazar dado de um
+cliente para outro, ser convencido a prometer condição que a loja não dá, e ser usado
+para coisa que não tem nada a ver com a loja.
+
+**O que já está resolvido pela arquitetura**
+
+A verificação de identidade é parâmetro obrigatório da função, não instrução no prompt.
+O modelo nunca recebe o pedido de um cliente sem que telefone e e-mail tenham batido com
+o cadastro. Não existe no contexto dele um dado que ele possa ser convencido a revelar,
+então o ataque do tipo "esqueça as instruções anteriores" não tem o que buscar.
+
+Pela mesma razão, ele não consegue prometer um desconto vencido: o preço chega pronto da
+função. E não existe nenhuma ferramenta de escrita, então nada pode ser criado, alterado
+ou apagado por conversa.
+
+**O que foi considerado e deixado de fora**
+
+Teto de tokens na resposta, teto no tamanho da mensagem recebida, teto de turnos por
+conversa e contador de tentativas de verificação.
+
+Os três primeiros cortam atendimento legítimo para impedir um caso hipotético: uma
+resposta com dez produtos, cada um com preço, preço no PIX e parcelamento, passa de
+qualquer teto razoável, e um cliente pode escrever uma mensagem longa descrevendo um
+problema.
+
+O contador de tentativas é diferente: ele não atrapalha ninguém, mas num protótipo sem
+identidade persistente ele zera quando a pessoa abre outra conversa. Seria um controle
+com aparência de controle.
+
+**Onde esses controles moram de verdade**
+
+Limite de tentativas e limite de uso pertencem à camada do canal, por número de telefone,
+onde o atacante não consegue zerar o contador sozinho. Alerta de gasto pertence à conta
+da API. Nenhum dos dois é responsabilidade do agente.
+
+**Um vetor que continua aberto**
+
+Descrição de produto, observação de pedido e nome de cliente vêm das planilhas e entram
+no contexto do modelo. Se alguém da loja cadastrar um produto cuja descrição contenha uma
+instrução, ela chega ao modelo parecendo instrução legítima. Nos dados atuais isso não
+acontece, mas o campo é texto livre preenchido pela loja.
+
+O que reduz: as ferramentas devolvem dados estruturados com campos rotulados, em vez de
+texto solto, e o prompt do sistema trata conteúdo vindo de ferramenta como dado. Não
+elimina. Um detector de injeção foi descartado por ser contornável e por dar a impressão
+de que o problema está resolvido.
+
+**Onde quebra.** Tudo isto vale para um protótipo que roda na máquina de quem avalia.
+Uma implantação real precisa dos limites no canal, de alerta de gasto, e de registro das
+tentativas de verificação que falharam, para o gerente ver que alguém está varrendo
+números de pedido.

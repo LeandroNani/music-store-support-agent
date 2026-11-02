@@ -99,6 +99,14 @@ def normalize_email(value: str | None) -> str | None:
     return cleaned.lower() if cleaned else None
 
 
+def _fold_for_sql(value: str | None) -> str:
+    """Lowercase without accents, exposed to SQL as fold()."""
+    if value is None:
+        return ""
+    decomposed = unicodedata.normalize("NFD", value)
+    return "".join(c for c in decomposed if not unicodedata.combining(c)).lower()
+
+
 def _read_csv(name: str) -> list[dict[str, str | None]]:
     path = DATA_DIR / name
     with path.open(encoding="utf-8", newline="") as handle:
@@ -113,6 +121,9 @@ def build_database() -> sqlite3.Connection:
     conn = sqlite3.connect(":memory:")
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
+
+    # SQLite compares accents literally, so "eletrico" would not find "Elétrico".
+    conn.create_function("fold", 1, _fold_for_sql, deterministic=True)
 
     conn.executemany(
         "INSERT INTO categories VALUES (:category_id, :name, :description)",

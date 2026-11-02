@@ -284,6 +284,32 @@ aplica e ao teste que prova que ela é aplicada.
 | Combinar formas de pagamento só acima de R$ 2.000,00 | §3.1 | `pricing.price_for_product` | `test_combined_payment_uses_the_price_actually_charged` |
 | Acima de R$ 2.000,00 a combinação é liberada | §3.1 | `pricing.price_for_product` | `test_combined_payment_allowed_above_the_threshold` |
 
-### Catálogo, pedidos e atendimento
+### Catálogo
 
-_A preencher conforme as ferramentas forem implementadas._
+| Regra | Origem | Onde é aplicada | Teste |
+|---|---|---|---|
+| Categoria sem produto é informada como falta de estoque, não como fora de escopo | B-05 | `catalog.list_categories` | `test_categories_report_how_many_products_they_have` |
+| Produto descontinuado não aparece na busca | B-01 | `catalog.search_products` | `test_search_leaves_out_discontinued_products` |
+| Produto descontinuado é oferecido se o cliente pedir pelo nome | B-01 | `catalog.get_product_details` | `test_discontinued_product_is_found_when_asked_for_by_name` |
+| Produto esgotado aparece na busca, marcado | B-03 | `catalog.search_products` | `test_search_keeps_out_of_stock_products_and_marks_them` |
+| O filtro de preço usa o menor valor que o cliente consegue pagar | B-09 | `catalog.search_products` | `test_search_price_filter_uses_the_price_the_customer_can_pay` |
+| A busca devolve 10 por página e informa o total encontrado | B-09 | `catalog.search_products` | `test_search_caps_the_page_and_reports_the_total` |
+| Acento e caixa não atrapalham a busca por nome | ETL | `catalog.fold`, `db.build_database` | `test_accents_do_not_break_a_name_search` |
+
+### Pedidos
+
+| Regra | Origem | Onde é aplicada | Teste |
+|---|---|---|---|
+| Pedido só é devolvido com telefone e e-mail batendo com o cadastro | §9, B-10, D-06 | `orders.get_order_status` | `test_order_is_returned_when_phone_and_email_both_match`, `test_a_wrong_phone_gets_nothing`, `test_a_wrong_email_gets_nothing` |
+| Credencial de um cliente não abre o pedido de outro | §9, B-10 | `orders.get_order_status` | `test_another_customers_credentials_do_not_open_this_order` |
+| Pedido inexistente e credencial errada dão a mesma resposta | B-10 | `orders.get_order_status` | `test_an_order_that_does_not_exist_looks_the_same_as_a_failed_check` |
+| O total informado é o gravado, nunca recalculado | B-04 | `orders.get_order_status` | `test_the_stored_total_is_reported_never_recalculated` |
+| Pedido cancelado informa o motivo registrado | §7.3 | `orders.get_order_status` | `test_a_cancelled_order_carries_the_reason` |
+
+### Políticas
+
+| Regra | Origem | Onde é aplicada | Teste |
+|---|---|---|---|
+| A consulta devolve a seção exata pedida, nunca a vizinha | D-02 | `policies.get_section` | `test_subsection_returns_only_itself` |
+| Pedir uma seção traz também suas subseções | D-02 | `policies.get_section` | `test_section_includes_its_subsections` |
+| Seção inexistente falha em vez de devolver a mais próxima | D-02 | `policies.get_section` | `test_unknown_section_is_reported_not_invented` |

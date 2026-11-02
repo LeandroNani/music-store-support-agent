@@ -106,6 +106,23 @@ repositório existe sem uma linha correspondente nesse documento.
 
 ---
 
+## Segurança
+
+A defesa principal não é uma instrução no prompt, é a forma como o agente foi montado.
+O Tom nunca recebe o pedido de um cliente sem que telefone e e-mail tenham batido com o
+cadastro, porque a verificação é parâmetro obrigatório da função. Ele não tem como
+revelar um dado que nunca chegou até ele, e não tem nenhuma ferramenta que crie, altere
+ou apague qualquer coisa.
+
+Controles de uso, como limite de tentativas por cliente e alerta de gasto, foram
+deliberadamente deixados de fora: num protótipo sem identidade persistente eles têm
+aparência de controle sem serem um. O lugar deles é a camada do canal e a conta da API.
+
+O raciocínio completo, incluindo um vetor que continua aberto, está em
+[docs/DECISIONS.md](docs/DECISIONS.md), decisão D-15.
+
+---
+
 ## Limitações conhecidas
 
 > _Seção a preencher ao final._
@@ -121,6 +138,9 @@ repositório existe sem uma linha correspondente nesse documento.
 >   _itens, produto descontinuado com estoque em aberto_
 > - _Integração real com o WhatsApp, onde o telefone do cliente vem verificado pelo_
 >   _próprio canal e a checagem de identidade deixa de depender do que ele digita_
+> - _Limite de tentativas de verificação por número de telefone, na camada do canal,_
+>   _com as tentativas que falharam visíveis no painel do administrador_
+> - _Alerta de gasto na conta da API_
 > - _Teste de mutação, para provar que a suíte de testes detecta alteração no código_
 > - _Conjunto de avaliação automatizado para as respostas do agente_
 
