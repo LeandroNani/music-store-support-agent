@@ -17,6 +17,18 @@ MANUAL_PATH = Path(__file__).resolve().parent.parent / "data" / "store_policies.
 # "## 4. Política de Trocas e Devoluções" and "### 4.1 Direito de Arrependimento"
 HEADING = re.compile(r"^(#{2,3})\s+(\d+(?:\.\d+)?)\.?\s+(.+)$")
 
+# The manual's cover reads "Documento interno, uso restrito da equipe de
+# atendimento". Most of it is customer facing anyway: opening hours, payment,
+# returns, shipping, warranty. These two are not.
+#
+# Section 7 trains the human staff on tone of voice and the steps to follow,
+# and section 10 tells them when to escalate to management. Read out to a
+# customer, they expose how the store runs its service desk.
+#
+# The block is here rather than in the prompt for the same reason the identity
+# check is a parameter: the agent cannot hand over text it was never given.
+INTERNAL_SECTIONS = frozenset({"7", "7.1", "7.2", "7.3", "10"})
+
 
 class PolicySectionNotFound(LookupError):
     """Raised instead of returning the nearest section."""
@@ -49,6 +61,8 @@ def _parse_manual() -> dict[str, PolicySection]:
             if next_level <= level:
                 end = next_start
                 break
+        if number in INTERNAL_SECTIONS:
+            continue
         text = "\n".join(lines[start:end]).strip()
         sections[number] = PolicySection(number=number, title=title, text=text)
 
