@@ -116,9 +116,14 @@ def _read_csv(name: str) -> list[dict[str, str | None]]:
         ]
 
 
-def build_database() -> sqlite3.Connection:
-    """Monta o banco em memória e devolve a conexão."""
-    conn = sqlite3.connect(":memory:")
+def build_database(same_thread: bool = True) -> sqlite3.Connection:
+    """Monta o banco em memória e devolve a conexão.
+
+    Streamlit pode reexecutar o script em outra thread entre uma mensagem e a
+    seguinte, e a conexão fica guardada na sessão. Por isso a interface passa
+    same_thread=False.
+    """
+    conn = sqlite3.connect(":memory:", check_same_thread=same_thread)
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
 
