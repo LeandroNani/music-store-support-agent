@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Tom, a customer support agent for a musical instrument store"
 requires-python = ">=3.11"
 dependencies = [
-    "openai>=2.0",
+    "openai>=3.0",
     "streamlit>=1.40",
 ]
 
