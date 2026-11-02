@@ -137,7 +137,7 @@ O efeito prático é que a correção do sistema passa a ser testável sem chama
 ## D-06 · Verificação de identidade dentro da função
 
 **Problema.** Qualquer pessoa pode abrir a conversa e pedir o status de um pedido. A
-base tem nome, telefone e e-mail de 49 clientes, e a seção 9 do manual trata de LGPD.
+base tem nome, telefone e e-mail de 50 clientes, e a seção 9 do manual trata de LGPD.
 
 **Considerei**
 - Instruir o modelo a confirmar a identidade antes de revelar dados
