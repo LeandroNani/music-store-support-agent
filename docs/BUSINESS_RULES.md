@@ -27,7 +27,7 @@ adicional.
 | O desconto do PIX não se aplica sobre preço já promocional | §6.2 |
 | Promoções não são cumulativas entre si | §6.2 |
 | Preço promocional é sempre apresentado junto do preço original e do percentual | §6.2 |
-| Crédito em até 3x: sem parcela mínima, exceto abaixo de R$ 50,00 | §3.1 |
+| Crédito em até 3x: parcela mínima de R$ 50,00 | §3.1 |
 | Crédito de 4x a 6x: parcela mínima de R$ 80,00 | §3.1 |
 | Crédito de 7x a 12x: parcela mínima de R$ 100,00 | §3.1 |
 | Combinar formas de pagamento: só acima de R$ 2.000,00 | §3.1 |
@@ -71,7 +71,7 @@ adicional.
 | Código de rastreio: BR + 9 caracteres + BR, enviado quando o pedido é despachado | §5.3 |
 
 > **Consequência no código:** a regra de frete grátis só vale para Campo Grande. Os
-> clientes da base estão em cinco cidades, e 25 deles estão fora de Campo Grande.
+> clientes da base estão em cinco cidades, e 26 deles estão fora de Campo Grande.
 
 ### Atendimento e escopo
 
@@ -270,6 +270,20 @@ real, o número viria da sessão do WhatsApp e essa checagem passaria a valer de
 Preenchida conforme a implementação avança. Cada linha liga uma regra ao código que a
 aplica e ao teste que prova que ela é aplicada.
 
+### Preço e pagamento
+
 | Regra | Origem | Onde é aplicada | Teste |
 |---|---|---|---|
-| _a preencher_ | | | |
+| PIX dá 5% sobre o preço de tabela | §3 | `pricing.price_for_product` | `test_pix_discount_applies_to_list_price` |
+| O desconto do PIX não incide sobre preço já promocional | §6.2 | `pricing.price_for_product` | `test_pix_discount_does_not_stack_on_promotional_price` |
+| Promoção vencida não é aplicada nem mencionada | §7.3, B-03 | `pricing._active_promotion` | `test_expired_promotions_are_ignored` |
+| Promoções não são cumulativas entre si | §6.2 | `pricing._active_promotion` | `test_promotions_never_stack_with_each_other` |
+| Parcela mínima de R$ 50,00 até 3x | §3.1 | `pricing.max_installments` | `test_installment_floor_up_to_three_times` |
+| Parcela mínima de R$ 80,00 de 4x a 6x, e de R$ 100,00 de 7x a 12x | §3.1 | `pricing.max_installments` | `test_max_installments_respects_the_minimum_for_the_band` |
+| Parcelamento é calculado sobre o preço que o cliente paga | §3.1, §6.2 | `pricing.price_for_product` | `test_installments_are_calculated_on_the_discounted_price` |
+| Combinar formas de pagamento só acima de R$ 2.000,00 | §3.1 | `pricing.price_for_product` | `test_combined_payment_uses_the_price_actually_charged` |
+| Acima de R$ 2.000,00 a combinação é liberada | §3.1 | `pricing.price_for_product` | `test_combined_payment_allowed_above_the_threshold` |
+
+### Catálogo, pedidos e atendimento
+
+_A preencher conforme as ferramentas forem implementadas._

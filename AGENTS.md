@@ -54,7 +54,6 @@ Toda pergunta que exige decisão minha traz, para **cada** opção: o que muda n
 o que custa, o que deixa de ser possível, se dá para voltar atrás, e o que o assistente
 faria e por quê.
 
-Uma decisão por pergunta.
 
 ## Fontes e viés
 
@@ -117,6 +116,8 @@ o que fica de fora está listado em [docs/ASSUMPTIONS.md](docs/ASSUMPTIONS.md).
 
 ## Escrita
 
+- Código, comentários e mensagens de commit em inglês. Documentação em português
+  durante o desenvolvimento, traduzida no fim.
 - Texto enxuto: palavra que pode sair sem mudar o sentido, sai.
 - Linguagem comum, do jeito que um time de TI escreve e comunica entre si.
 - Sem frase de efeito fechando parágrafo.
