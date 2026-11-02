@@ -195,6 +195,14 @@ chegar nele.
 Modelo local ficou fora porque o suporte a chamada de ferramenta é menos confiável, e
 depurar isso consumiria tempo sem melhorar a solução.
 
+**Uma restrição do modelo, encontrada rodando.** O Luna recusa ferramentas no endpoint
+de chat enquanto o esforço de raciocínio estiver ligado, e responde com um erro que
+aponta as duas saídas: usar o endpoint novo, ou desligar o raciocínio. Desligar foi
+suficiente, e não custa nada aqui: o raciocínio que este agente precisa é escolher a
+ferramenta, e a deliberação que o parâmetro compra seria gasta num trabalho que o Python
+já fez. O parâmetro é passado como opção, não fixo no código, porque outro modelo pode
+não precisar dele.
+
 **Onde quebra.** Rodar o projeto exige uma chave de API. O acesso ao provedor está
 isolado em um módulo, então trocar de provedor ou de modelo é mudança localizada.
 
