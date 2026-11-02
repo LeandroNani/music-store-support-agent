@@ -263,6 +263,24 @@ canal daria.
 **Limitação:** telefone informado pelo cliente não é telefone verificado. Numa implantação
 real, o número viria da sessão do WhatsApp e essa checagem passaria a valer de verdade.
 
+### B-11 · De que data os prazos são contados
+
+O manual conta o arrependimento e a garantia legal "a partir do recebimento do
+produto". A planilha de pedidos não tem data de recebimento: tem `order_date`, que é
+a data da compra, e `estimated_delivery`, que é a previsão de entrega.
+
+**Decidido:** usar a `estimated_delivery` como data de recebimento, e apenas para pedidos
+com situação `delivered`. É o campo mais próximo do que o manual pede, e para um pedido
+já entregue a previsão passou. A troca por defeito, que o manual conta a partir da
+compra e não do recebimento, usa a `order_date`.
+
+Pedido que ainda não foi entregue não tem prazo de arrependimento nem de garantia
+contado, porque nada foi recebido.
+
+**Limitação:** previsão de entrega não é entrega. Um pedido que atrasou tem a data
+errada, e para menos, o que encurta o prazo do cliente. Numa implantação real o campo
+de recebimento viria da transportadora.
+
 ---
 
 ## Parte C · Matriz de rastreabilidade
@@ -278,7 +296,7 @@ aplica e ao teste que prova que ela é aplicada.
 | O desconto do PIX não incide sobre preço já promocional | §6.2 | `pricing.price_for_product` | `test_pix_discount_does_not_stack_on_promotional_price` |
 | Promoção vencida não é aplicada nem mencionada | §7.3, B-03 | `pricing._active_promotion` | `test_expired_promotions_are_ignored` |
 | Promoções não são cumulativas entre si | §6.2 | `pricing._active_promotion` | `test_promotions_never_stack_with_each_other` |
-| Parcela mínima de R$ 50,00 até 3x | §3.1 | `pricing.max_installments` | `test_installment_floor_up_to_three_times` |
+| Parcela mínima de R$ 50,00 até 3x | §3.1 | `pricing.max_installments` | `test_installment_floor_up_to_three_times`, `test_installment_floor_applies_through_the_product_lookup` |
 | Parcela mínima de R$ 80,00 de 4x a 6x, e de R$ 100,00 de 7x a 12x | §3.1 | `pricing.max_installments` | `test_max_installments_respects_the_minimum_for_the_band` |
 | Parcelamento é calculado sobre o preço que o cliente paga | §3.1, §6.2 | `pricing.price_for_product` | `test_installments_are_calculated_on_the_discounted_price` |
 | Combinar formas de pagamento só acima de R$ 2.000,00 | §3.1 | `pricing.price_for_product` | `test_combined_payment_uses_the_price_actually_charged` |
@@ -295,6 +313,7 @@ aplica e ao teste que prova que ela é aplicada.
 | O filtro de preço usa o menor valor que o cliente consegue pagar | B-09 | `catalog.search_products` | `test_search_price_filter_uses_the_price_the_customer_can_pay` |
 | A busca devolve 10 por página e informa o total encontrado | B-09 | `catalog.search_products` | `test_search_caps_the_page_and_reports_the_total` |
 | Acento e caixa não atrapalham a busca por nome | ETL | `catalog.fold`, `db.build_database` | `test_accents_do_not_break_a_name_search` |
+| O cliente acha o produto digitando parte do nome | §7.1 | `catalog.get_product_details` | `test_product_details_found_by_part_of_the_name` |
 
 ### Pedidos
 
@@ -305,6 +324,13 @@ aplica e ao teste que prova que ela é aplicada.
 | Pedido inexistente e credencial errada dão a mesma resposta | B-10 | `orders.get_order_status` | `test_an_order_that_does_not_exist_looks_the_same_as_a_failed_check` |
 | O total informado é o gravado, nunca recalculado | B-04 | `orders.get_order_status` | `test_the_stored_total_is_reported_never_recalculated` |
 | Pedido cancelado informa o motivo registrado | §7.3 | `orders.get_order_status` | `test_a_cancelled_order_carries_the_reason` |
+| Prazo de arrependimento: 7 dias corridos do recebimento | §4.1, B-11 | `orders._deadlines` | `test_deadlines_are_calculated_in_code_not_by_the_model`, `test_the_last_day_of_the_window_still_counts` |
+| Prazo de troca por defeito: 30 dias corridos da compra | §4.2, B-11 | `orders._deadlines` | `test_deadlines_are_calculated_in_code_not_by_the_model` |
+| Garantia legal: 90 dias do recebimento | §8.1, B-11 | `orders._deadlines` | `test_deadlines_are_calculated_in_code_not_by_the_model` |
+| Prazo fechado é informado com a data em que fechou | §4.1, D-14 | `orders._deadlines` | `test_an_expired_window_is_reported_as_expired` |
+| Pedido não entregue não tem prazo contado | B-11 | `orders._deadlines` | `test_an_order_not_yet_delivered_has_no_deadlines_to_report` |
+| A pontuação do telefone não reprova o cliente | B-10 | `db.digits_only` | `test_the_customer_may_type_the_phone_any_way_they_like` |
+| Maiúscula no e-mail não reprova o cliente | B-10 | `db.normalize_email` | `test_the_email_is_not_case_sensitive` |
 
 ### Políticas
 
@@ -313,3 +339,21 @@ aplica e ao teste que prova que ela é aplicada.
 | A consulta devolve a seção exata pedida, nunca a vizinha | D-02 | `policies.get_section` | `test_subsection_returns_only_itself` |
 | Pedir uma seção traz também suas subseções | D-02 | `policies.get_section` | `test_section_includes_its_subsections` |
 | Seção inexistente falha em vez de devolver a mais próxima | D-02 | `policies.get_section` | `test_unknown_section_is_reported_not_invented` |
+| O índice do manual vai para o prompt, o texto não | D-02 | `policies.list_sections`, `persona.build_system_prompt` | `test_index_lists_every_section_and_subsection` |
+| As seções internas do manual não são acessíveis ao agente | capa do manual, §7, §10 | `policies.INTERNAL_SECTIONS` | `test_the_internal_sections_are_out_of_reach` |
+| Bloquear as internas não afeta as demais seções | §7 | `policies._parse_manual` | `test_blocking_section_seven_does_not_break_the_rest` |
+
+### Agente
+
+Estas não são regras da loja, são garantias do laço que conversa com o modelo. Estão
+aqui porque a regra deste documento vale para todo teste do repositório.
+
+| Garantia | Origem | Onde é aplicada | Teste |
+|---|---|---|---|
+| Preço chega ao modelo como texto, nunca como número de ponto flutuante | D-14 | `agent._plain` | `test_prices_reach_the_model_as_text_never_as_floats` |
+| A mensagem genérica de pedido não encontrado chega ao modelo intacta | B-10 | `agent._build_dispatch` | `test_a_failed_order_check_says_nothing_about_the_order_existing` |
+| O resultado da ferramenta volta para o modelo antes dele responder | D-01 | `agent.Agent.respond` | `test_a_tool_call_runs_and_its_result_goes_back_to_the_model` |
+| Pergunta que não precisa de consulta não gera consulta | D-01 | `agent.Agent.respond` | `test_a_plain_answer_makes_no_lookups` |
+| Ferramenta que falha devolve o erro ao modelo sem derrubar a conversa | D-01 | `agent.Agent._run_tool` | `test_a_failed_lookup_is_handed_back_instead_of_crashing` |
+| Nome de ferramenta inexistente não derruba a conversa | D-01 | `agent.Agent._run_tool` | `test_an_unknown_tool_name_does_not_take_the_turn_down` |
+| O laço para e oferece a equipe em vez de girar sem fim | D-01 | `agent.Agent.respond` | `test_the_loop_stops_instead_of_spinning` |

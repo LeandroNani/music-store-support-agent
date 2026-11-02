@@ -105,3 +105,64 @@ def test_a_cancelled_order_carries_the_reason(db):
     assert order.status == "cancelled"
     assert order.notes == "Endereço de entrega inválido informado pelo cliente"
     assert order.tracking_code is None
+
+
+# Order 7 was placed on 2026-02-03 and delivered on 2026-02-17.
+DELIVERED_ORDER = 7
+DELIVERED_PHONE = "(67) 99789-0123"
+DELIVERED_EMAIL = "leticia.rocha@jmail.com"
+
+
+def _order7(db):
+    return get_order_status(
+        db, DELIVERED_ORDER, phone=DELIVERED_PHONE, email=DELIVERED_EMAIL
+    )
+
+
+def test_deadlines_are_calculated_in_code_not_by_the_model(monkeypatch, db):
+    """D-14: the agent must never work out whether a window is still open.
+
+    Three days after delivery, all three windows are open.
+    """
+    monkeypatch.setenv("EMPORIO_TODAY", "2026-02-20")
+
+    deadlines = _order7(db).deadlines
+
+    assert deadlines.received_on == "2026-02-17"
+    assert deadlines.withdrawal_deadline == "2026-02-24"  # manual 4.1, 7 days
+    assert deadlines.withdrawal_open is True
+    assert deadlines.defect_exchange_deadline == "2026-03-05"  # manual 4.2, 30 days
+    assert deadlines.defect_exchange_open is True
+    assert deadlines.legal_warranty_until == "2026-05-18"  # manual 8.1, 90 days
+    assert deadlines.legal_warranty_open is True
+
+
+def test_an_expired_window_is_reported_as_expired(monkeypatch, db):
+    """The answer to "can I return it?" months later is a date, not a maybe."""
+    monkeypatch.setenv("EMPORIO_TODAY", "2026-11-02")
+
+    deadlines = _order7(db).deadlines
+
+    assert deadlines.withdrawal_open is False
+    assert deadlines.withdrawal_deadline == "2026-02-24"
+    assert deadlines.legal_warranty_open is False
+
+
+def test_the_last_day_of_the_window_still_counts(monkeypatch, db):
+    """Seven calendar days after delivery is inside the window, not outside."""
+    monkeypatch.setenv("EMPORIO_TODAY", "2026-02-24")
+
+    assert _order7(db).deadlines.withdrawal_open is True
+
+
+def test_an_order_not_yet_delivered_has_no_deadlines_to_report(db):
+    """Order 13 is pending, so nothing has been received and nothing has started."""
+    customer = db.execute(
+        "SELECT phone, email FROM customers WHERE customer_id = "
+        "(SELECT customer_id FROM orders WHERE order_id = 13)"
+    ).fetchone()
+
+    order = get_order_status(db, 13, phone=customer["phone"], email=customer["email"])
+
+    assert order.deadlines.received_on is None
+    assert order.deadlines.withdrawal_open is False
