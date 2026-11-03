@@ -5,9 +5,7 @@ documentadas. Este documento registra as ambiguidades do **enunciado**, e o que 
 assumido em cada uma.
 
 As ambiguidades dos **dados**, que viram código e teste, estão em
-[BUSINESS_RULES.md](BUSINESS_RULES.md).
-
-> Documento em português durante o desenvolvimento. Tradução para inglês antes da entrega.
+[BUSINESS_RULES-PTBR.md](BUSINESS_RULES-PTBR.md).
 
 ---
 
@@ -104,3 +102,19 @@ corretamente, sem definir o que fica de fora.
 Sem autenticação de usuário, sem deploy, sem container, sem integração contínua, sem
 banco em servidor e sem monitoramento. O que entra é o agente correto, testado nas regras
 que importam, e rodável na máquina de quem avalia.
+
+---
+
+## S-08 · Quem conversa com o Tom
+
+**A ambiguidade.** O enunciado diz que o agente vai "auxiliar a equipe no atendimento".
+Isso tem duas leituras: o Tom responde ao cliente, ou o Tom é uma ferramenta de consulta
+que o atendente usa enquanto conversa com o cliente. As duas mudam tudo: a segunda não
+precisa de verificação de identidade nenhuma, porque quem pergunta já é da loja.
+
+**Assumido:** o Tom fala com o cliente. A §7 do manual descreve um assistente virtual
+que faz a primeira resposta e aciona a equipe quando não resolve, e o auxílio à equipe
+vem de absorver as perguntas repetidas antes que elas cheguem a uma pessoa.
+
+A consequência é a verificação de identidade. Se o Tom falasse com a equipe, pedir
+telefone e e-mail para abrir um pedido seria atrito inútil.

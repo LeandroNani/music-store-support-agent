@@ -4,8 +4,6 @@ Este arquivo define as restrições que qualquer assistente de código deve resp
 trabalhar neste projeto. A maior parte vem das instruções que eu uso em todos os meus
 projetos, recortada para o que importa aqui.
 
-> Documento em português durante o desenvolvimento. Tradução para inglês antes da entrega.
-
 ---
 
 ## Quem decide
@@ -19,7 +17,7 @@ custa, e executando a escolha.
 - **Se dá para descobrir sem mim, descubra.** Comportamento de biblioteca se testa
   chamando a biblioteca. Só chega até mim decisão de gosto, de prioridade, de custo ou
   de contrato.
-- Toda decisão tomada é registrada em [docs/DECISIONS.md](docs/DECISIONS.md).
+- Toda decisão tomada é registrada em [docs/DECISIONS-PTBR.md](docs/DECISIONS-PTBR.md).
 
 ## Verdade acima de conforto
 
@@ -69,9 +67,10 @@ faria e por quê.
 
 ## Invariantes de arquitetura
 
-- **Regra de negócio fica em Python**, dentro das ferramentas, nunca no prompt.
-- **O modelo não faz conta.** Desconto, preço no PIX, parcelamento, frete e contagem de
-  prazo são calculados em Python e devolvidos prontos.
+- **Conta e elegibilidade ficam em Python**, dentro das ferramentas. O prompt tem o
+  roteiro de conversa, e nenhuma linha dele decide número.
+- **O modelo não faz conta.** Desconto, preço no PIX, parcelamento e contagem de prazo
+  são calculados em Python e devolvidos prontos.
 - **O modelo não escreve SQL.** As consultas são escritas à mão e parametrizadas.
 - **Nenhuma resposta sobre preço, estoque ou prazo sem uma chamada de ferramenta.**
 - **O agente não tem ferramenta de escrita.** Nada cria, altera ou apaga dado.
@@ -80,7 +79,7 @@ faria e por quê.
 ## Testes e verificação
 
 - Nenhum teste existe sem uma linha correspondente em
-  [docs/BUSINESS_RULES.md](docs/BUSINESS_RULES.md), apontando para uma seção do manual
+  [docs/BUSINESS_RULES-PTBR.md](docs/BUSINESS_RULES-PTBR.md), apontando para uma seção do manual
   da loja ou para uma anomalia encontrada nos dados.
 - O teste é escrito antes do código e precisa ser visto falhando.
 - Durante o trabalho, roda só o arquivo de teste que cobre o que mudou. A bateria
@@ -91,7 +90,7 @@ faria e por quê.
 
 Isto é um protótipo. O escopo é o agente correto, testado nas regras de negócio da
 loja, e rodável por quem clonar o repositório. Infraestrutura de produção fica fora, e
-o que fica de fora está listado em [docs/ASSUMPTIONS.md](docs/ASSUMPTIONS.md).
+o que fica de fora está listado em [docs/ASSUMPTIONS-PTBR.md](docs/ASSUMPTIONS-PTBR.md).
 
 - Nenhuma dependência nova sem aprovação explícita do autor.
 - Nenhuma funcionalidade fora do enunciado.
@@ -116,8 +115,8 @@ o que fica de fora está listado em [docs/ASSUMPTIONS.md](docs/ASSUMPTIONS.md).
 
 ## Escrita
 
-- Código, comentários e mensagens de commit em inglês. Documentação em português
-  durante o desenvolvimento, traduzida no fim.
+- Código, comentários e mensagens de commit em inglês. A documentação tem as duas
+  versões: a avaliada é a em inglês, e a em português fica com o sufixo `-PTBR`.
 - Texto enxuto: palavra que pode sair sem mudar o sentido, sai.
 - Linguagem comum, do jeito que um time de TI escreve e comunica entre si.
 - Sem frase de efeito fechando parágrafo.

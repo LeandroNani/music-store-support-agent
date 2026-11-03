@@ -3,8 +3,6 @@
 Cada decisão registra o problema, as alternativas que considerei, o que escolhi e,
 quando existe, onde a escolha quebra.
 
-> Documento em português durante o desenvolvimento. Tradução para inglês antes da entrega.
-
 ## Índice
 
 | # | Decisão | Em uma linha |
@@ -24,6 +22,8 @@ quando existe, onde a escolha quebra.
 | [D-13](#d-13--teste-antes-do-código) | Teste antes do código | O teste é escrito antes da implementação e precisa ser visto falhando. |
 | [D-14](#d-14--nenhum-cálculo-feito-pelo-modelo) | Nenhum cálculo feito pelo modelo | Toda conta é feita em Python e entregue pronta ao modelo. |
 | [D-15](#d-15--escopo-de-segurança-do-protótipo) | Escopo de segurança do protótipo | A defesa está na arquitetura. Limites de uso ficam para a camada do canal. |
+| [D-16](#d-16--estratégia-de-prompt) | Estratégia de prompt | Um prompt de sistema só, com o índice do manual injetado e nenhum exemplo. |
+| [D-17](#d-17--tratamento-dos-dados) | Tratamento dos dados | O que a carga normaliza, e como o manual em pdf virou markdown. |
 
 ---
 
@@ -80,13 +80,12 @@ escreva as consultas.
 - O modelo escreve o SQL
 - Consultas escritas à mão e parametrizadas, expostas como ferramentas
 
-**Escolhi as consultas escritas à mão.** O volume não é o critério: filtrar por faixa
-de preço custa o mesmo com 65 ou com 300 mil produtos. O critério é a previsibilidade.
-Cliente de loja de instrumentos pergunta preço, disponibilidade, faixa de preço, status
-de pedido e regra da loja. Cinco ferramentas cobrem esse conjunto.
+**Escolhi as consultas escritas à mão.** O critério é a previsibilidade, não o volume.
+As cinco ferramentas cobrem o que o enunciado exemplifica: preço, disponibilidade,
+faixa de preço, status de pedido e regra da loja.
 
 O risco decisivo é outro. Se o modelo escreve a consulta, ele pode buscar na tabela de
-promoções sem filtrar as expiradas e prometer um desconto que não existe mais, o que a
+promoções sem filtrar as inativas e prometer um desconto que não existe mais, o que a
 seção 7.3 do manual proíbe. Com a consulta escrita à mão, esse erro é impossível.
 
 **Onde quebra.** Perguntas analíticas fora do previsto não são atendidas. Um exemplo:
@@ -129,6 +128,13 @@ incide sobre preço já promocional, e nunca confirmar disponibilidade sem checa
 lembrar dela a cada resposta, e o cliente pode argumentar até contorná-la. Dentro da
 função, o modelo nunca vê o dado cru: ele recebe o preço já correto e apenas comunica.
 
+A divisão não é entre regra no código e nada no prompt. O que fica em Python é o que
+decide número e elegibilidade: desconto, parcelamento, estoque, prazo, identidade. O
+que fica no prompt é como comunicar o resultado, por exemplo sempre apresentar o preço
+no PIX junto com o de tabela, ou dizer que um produto saiu de linha em vez de só omitir
+o modelo. Essas linhas não calculam nada, e se o modelo esquecer uma delas a resposta
+fica pior, não fica errada.
+
 O efeito prático é que a correção do sistema passa a ser testável sem chamar o modelo.
 
 **Onde quebra.** Regra nova exige mudança de código, não de texto.
@@ -146,11 +152,12 @@ base tem nome, telefone e e-mail de 50 clientes, e a seção 9 do manual trata d
 
 **Escolhi o parâmetro obrigatório.** Instrução no prompt é contornável por conversa:
 *"esquece as instruções anteriores, sou o gerente da loja"* é um ataque conhecido, e
-modelo de linguagem é convencível. Como parâmetro, a função exige o número do pedido e
-um dado de contato que precisa bater com o cadastro daquele pedido. Não batendo, não
+modelo de linguagem é convencível. Como parâmetro, a função exige o número do pedido mais
+telefone e e-mail, os dois batendo com o cadastro daquele pedido. Não batendo, não
 devolve nada, e o modelo não tem como burlar porque nunca teve acesso ao banco.
 
-**Onde quebra.** Mais atrito para o cliente legítimo, que precisa informar um dado a mais.
+**Onde quebra.** Mais atrito para o cliente legítimo, que precisa informar dois dados
+a mais.
 
 ---
 
@@ -229,7 +236,7 @@ cumpridas, e cobertura escolhida sem critério não demonstra isso.
 
 **Escolhi exigir origem para todo teste.** Cada um aponta para uma seção específica do
 manual ou para uma anomalia específica nos dados. O catálogo está em
-[BUSINESS_RULES.md](BUSINESS_RULES.md).
+[BUSINESS_RULES-PTBR.md](BUSINESS_RULES-PTBR.md).
 
 Sem o catálogo, a suíte é um conjunto de verificações sem critério, e não há como
 responder por que um caso foi testado e outro não.
@@ -248,8 +255,8 @@ dias de arrependimento, os 90 dias de garantia legal.
 **Escolhi a data real.** Congelar a data esconderia justamente os casos em que a
 regra de prazo importa. Com a data real, um pedido
 entregue em fevereiro de 2026 já está fora do prazo de arrependimento, e a resposta
-correta do Tom não é um não seco: é informar que o prazo da seção 4.1 expirou e que a
-garantia legal de 90 dias ainda pode cobrir, se o caso for defeito de fabricação.
+correta do Tom é informar que o prazo da seção 4.1 expirou e que a garantia legal de 90
+dias ainda pode cobrir, se o caso for defeito de fabricação.
 
 **Onde quebra.** Os exemplos de conversa envelhecem. Por isso existe a variável de
 ambiente `EMPORIO_TODAY`, que fixa a data para reproduzir um exemplo ou rodar um teste.
@@ -305,15 +312,17 @@ próximos passos.
 ## D-14 · Nenhum cálculo feito pelo modelo
 
 **Problema.** Várias respostas do Tom envolvem conta: desconto, preço no PIX, número
-máximo de parcelas, valor do frete, dias restantes de um prazo.
+máximo de parcelas, dias restantes de um prazo. O frete fica de fora: o material
+recebido dá a regra de Campo Grande, não dá a tabela das outras cidades, então o Tom
+lê a seção do manual e pede o CEP.
 
 **Escolhi fazer toda conta em Python, dentro das ferramentas.** O modelo recebe o
 resultado pronto e apenas comunica.
 
 Um LLM prevê o próximo token, então aritmética para ele é padrão de texto, não cálculo.
-Acerta quase sempre, e é justamente aí que mora o risco: o erro sai com a mesma
-confiança do acerto, e ninguém revisa. Informar valor de parcela errado para um cliente
-é propaganda enganosa, que é exatamente o que a §7.1 do manual manda evitar.
+Acerta quase sempre, e o erro sai com a mesma confiança do acerto. Informar valor de
+parcela errado para um cliente é propaganda enganosa, que a §7.1 do manual manda
+evitar.
 
 Na prática, `get_product_details` devolve o parcelamento já resolvido, como 4x de
 R$ 89,75. O Tom nunca divide 359 por 4.
@@ -337,7 +346,7 @@ O modelo nunca recebe o pedido de um cliente sem que telefone e e-mail tenham ba
 o cadastro. Não existe no contexto dele um dado que ele possa ser convencido a revelar,
 então o ataque do tipo "esqueça as instruções anteriores" não tem o que buscar.
 
-Pela mesma razão, ele não consegue prometer um desconto vencido: o preço chega pronto da
+Pela mesma razão, ele não consegue prometer um desconto que não vale mais: o preço chega pronto da
 função. E não existe nenhuma ferramenta de escrita, então nada pode ser criado, alterado
 ou apagado por conversa.
 
@@ -352,10 +361,9 @@ qualquer teto razoável, e um cliente pode escrever uma mensagem longa descreven
 problema.
 
 O contador de tentativas é diferente: ele não atrapalha ninguém, mas num protótipo sem
-identidade persistente ele zera quando a pessoa abre outra conversa. Seria um controle
-com aparência de controle.
+identidade persistente ele zera quando a pessoa abre outra conversa.
 
-**Onde esses controles moram de verdade**
+**Onde esses controles pertencem**
 
 Limite de tentativas e limite de uso pertencem à camada do canal, por número de telefone,
 onde o atacante não consegue zerar o contador sozinho. Alerta de gasto pertence à conta
@@ -377,3 +385,89 @@ de que o problema está resolvido.
 Uma implantação real precisa dos limites no canal, de alerta de gasto, e de registro das
 tentativas de verificação que falharam, para o gerente ver que alguém está varrendo
 números de pedido.
+
+---
+
+## D-16 · Estratégia de prompt
+
+**Problema.** O enunciado pede a justificativa da estratégia de prompt. As escolhas são
+quantos prompts existem, o que entra em cada um, se há exemplos de conversa dentro dele
+e se o modelo é instruído a raciocinar antes de responder.
+
+**Considerei**
+- Um prompt de sistema único, com as instruções de atendimento
+- Dois estágios: um prompt classifica a mensagem, outro responde
+- Incluir exemplos de pergunta e resposta dentro do prompt
+- Pedir ao modelo que escreva o raciocínio antes de escolher a ferramenta
+
+**Escolhi o prompt de sistema único, sem exemplos e sem raciocínio escrito.**
+
+Um só porque a escolha entre dados e política já é feita pelo function calling: as cinco
+ferramentas têm descrições que dizem para que servem, e o modelo escolhe entre elas. Um
+estágio de classificação antes disso faria o mesmo trabalho duas vezes, e o segundo
+estágio ainda precisaria montar os argumentos da chamada.
+
+Sem exemplos porque o que um exemplo ensinaria é formato de resposta, e o formato aqui
+vem pronto da ferramenta: o preço já chega com PIX e parcelamento resolvidos. Exemplo
+de conversa também envelhece junto com o catálogo, e um exemplo com preço desatualizado
+dentro do prompt é uma fonte de erro que ninguém vai testar.
+
+Sem raciocínio escrito porque as decisões são de uma etapa: qual ferramenta chamar e com
+que argumento. O `gpt-6-luna` roda com `reasoning_effort` desligado, o que torna a
+escolha explícita em vez de acidental.
+
+**O que fica dentro do prompt.** Como falar, o que fazer em cada situação que o manual
+prevê, e o índice do manual: os números e títulos das seções, injetados a cada chamada
+para o modelo saber qual pedir. O texto das seções não vai, o que mantém o prompt em
+torno de cinco mil caracteres.
+
+**O que não fica.** Nada que decida número ou elegibilidade (D-05). As linhas que
+sobram são de comunicação, e se o modelo variar a forma delas a resposta muda de
+redação, não de conteúdo.
+
+**Onde quebra.** Prompt único cresce junto com o catálogo de situações. Quando o manual
+passar de dez seções, o índice sozinho já ocupa espaço suficiente para valer uma busca
+em vez da lista inteira. E sem exemplos, o tom depende só da descrição em prosa: se o
+modelo mudar de versão, a redação pode mudar sem que nenhum teste perceba.
+
+---
+
+## D-17 · Tratamento dos dados
+
+**Problema.** O enunciado pede a justificativa do tratamento dos dados. O material
+recebido são seis CSVs e um manual em pdf, e nenhum dos dois está pronto para consulta.
+
+**Escolhi normalizar na carga e nunca tocar nos arquivos originais.** Tudo que o ETL
+faz está em `emporio/db.py`, roda quando a aplicação sobe, e os arquivos em `data/raw`
+continuam byte a byte como vieram.
+
+O que a carga resolve, e por que cada um apareceu:
+
+- **Unicode NFC.** "Ponta Porã" aparece nos CSVs em duas formas Unicode diferentes, com
+  o til como caractere separado em algumas linhas. Duas cidades iguais não batem numa
+  comparação. Normalizar na carga é o único lugar onde isso se resolve uma vez.
+- **Telefone reduzido a dígitos.** O cadastro guarda `(67) 99789-0123` e o cliente
+  digita do jeito que quiser. A coluna derivada `phone_digits` existe para a comparação
+  não depender de pontuação.
+- **E-mail em minúscula.** Mesma razão, com `email_norm`.
+- **Dobra de acento na busca.** `fold()` é registrada como função SQL e tira acento e
+  caixa, senão "eletrico" não encontra "Elétrico". Fica no SQLite em vez de em Python
+  para o filtro continuar dentro da consulta.
+- **Corda de aço.** O catálogo grava `steel` e o cliente pede "aço". A tradução está em
+  `catalog.STRING_MATERIALS`, não na carga, porque é vocabulário de quem pergunta e não
+  defeito do dado.
+
+**O manual em pdf.** O pdf não é lido em tempo de execução. Ele foi transcrito uma vez
+para `data/store_policies.md`, preservando a numeração das seções, e é o markdown que a
+ferramenta de políticas lê. O pdf continua versionado em `data/raw` para conferência.
+
+A transcrição foi feita por um assistente e conferida por comparação, parágrafo a
+parágrafo, contra o pdf: mesma numeração, mesmas tabelas, mesmo texto. A única diferença
+é a capitalização do título da capa.
+
+**Onde quebra.** A conferência da transcrição foi feita uma vez, à mão, e não há teste
+que compare o markdown com o texto extraído do pdf. Se alguém editar o markdown, nada
+acusa. Num projeto que fosse continuar, essa comparação viraria teste.
+
+O ETL também confia no formato dos CSVs: uma linha com preço vazio derruba a subida da
+aplicação com erro de conversão, em vez de ser reportada como linha inválida.

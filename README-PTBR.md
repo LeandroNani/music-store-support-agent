@@ -6,12 +6,6 @@ as políticas da loja em trocas, devoluções, frete, pagamento e garantia.
 
 Construído como caso técnico para a vaga de AI Engineer na Artefact, novembro de 2026.
 
-> **Nota de idioma:** a documentação está sendo escrita em português durante o
-> desenvolvimento e será traduzida para inglês antes da entrega. Esta nota sai na
-> versão final.
-
----
-
 ## O problema
 
 A Empório da Música é uma loja de instrumentos em Campo Grande/MS. O atendimento é
@@ -79,7 +73,7 @@ flowchart TD
 ```
 
 O agente nunca acessa os dados diretamente. Ele chama funções, e as funções já aplicam
-as regras da loja antes de devolver o resultado: o preço chega com a promoção vencida já
+as regras da loja antes de devolver o resultado: o preço chega com a promoção desligada já
 descartada, o produto esgotado chega marcado como fora de estoque, e o pedido de um
 cliente só chega se quem está perguntando tiver confirmado os dados de contato dele.
 
@@ -98,7 +92,7 @@ cliente só chega se quem está perguntando tiver confirmado os dados de contato
 ## Decisões técnicas
 
 As decisões que estruturam o projeto estão em
-**[docs/DECISIONS.md](docs/DECISIONS.md)**, cada uma com as alternativas que considerei
+**[docs/DECISIONS-PTBR.md](docs/DECISIONS-PTBR.md)**, cada uma com as alternativas que considerei
 e o que a escolha custa. As principais:
 
 | Decisão | Resumo |
@@ -106,16 +100,18 @@ e o que a escolha custa. As principais:
 | Abordagem | Laço ReAct com function calling nativo, sem framework de agente |
 | Políticas | Recuperação por seção, sem banco vetorial |
 | Dados | Consultas escritas à mão sobre SQLite em memória, sem agente de SQL |
-| Regras de negócio | Em Python, dentro das ferramentas, nunca no prompt |
+| Regras de negócio | Conta e elegibilidade em Python, dentro das ferramentas |
 | Segurança | Verificação de identidade como parâmetro obrigatório da função |
 | Interface | Streamlit, com painel de trace para desenvolvimento |
+| Prompt | Um prompt de sistema só, com o índice do manual injetado, sem exemplos |
+| Tratamento dos dados | Normalização na carga, e o manual transcrito do pdf para markdown |
 
 ---
 
 ## Suposições
 
 O enunciado pede que ambiguidades sejam resolvidas com uma interpretação razoável e
-documentadas. São sete, em **[docs/ASSUMPTIONS.md](docs/ASSUMPTIONS.md)**. As que mais
+documentadas. São oito, em **[docs/ASSUMPTIONS-PTBR.md](docs/ASSUMPTIONS-PTBR.md)**. As que mais
 mudam o comportamento:
 
 - **O Tom fala com o cliente**, não com a equipe. A seção 7 do manual já previa o
@@ -139,26 +135,30 @@ ser extraída, confrontada com os dados reais e decidida. Em vários pontos o ma
 conflita com o conjunto de dados, e esses conflitos não têm resposta pronta em lugar
 nenhum do material recebido.
 
-**[docs/BUSINESS_RULES.md](docs/BUSINESS_RULES.md)** é esse catálogo: cada regra, sua
-origem, onde ela é aplicada no código e qual teste a cobre. Nenhum teste deste
-repositório existe sem uma linha correspondente nesse documento.
+**[docs/BUSINESS_RULES-PTBR.md](docs/BUSINESS_RULES-PTBR.md)** é esse catálogo: cada regra com a
+seção do manual de onde saiu, os conflitos e como foram decididos, e uma matriz que
+liga as regras que viraram código ao teste que as cobre. Nenhum teste deste
+repositório existe sem uma linha nessa matriz. O caminho inverso não vale: boa parte
+das regras do manual é servida ao modelo como texto, sem código próprio, e essas não
+têm linha.
 
 ---
 
 ## Segurança
 
-A defesa principal não é uma instrução no prompt, é a forma como o agente foi montado.
+A defesa está na montagem do agente, não numa instrução de prompt.
 O Tom nunca recebe o pedido de um cliente sem que telefone e e-mail tenham batido com o
 cadastro, porque a verificação é parâmetro obrigatório da função. Ele não tem como
 revelar um dado que nunca chegou até ele, e não tem nenhuma ferramenta que crie, altere
 ou apague qualquer coisa.
 
 Controles de uso, como limite de tentativas por cliente e alerta de gasto, foram
-deliberadamente deixados de fora: num protótipo sem identidade persistente eles têm
-aparência de controle sem serem um. O lugar deles é a camada do canal e a conta da API.
+deliberadamente deixados de fora: num protótipo sem identidade persistente o contador
+zera quando a pessoa abre outra conversa. Esse controle pertence à camada do canal e à
+conta da API.
 
 O raciocínio completo, incluindo um vetor que continua aberto, está em
-[docs/DECISIONS.md](docs/DECISIONS.md), decisão D-15.
+[docs/DECISIONS-PTBR.md](docs/DECISIONS-PTBR.md), decisão D-15.
 
 ---
 
@@ -195,28 +195,28 @@ conseguiu responder.
 **Limite de uso na camada do canal**, por número de telefone, mais alerta de gasto na
 conta da API. Os dois ficam fora do agente de propósito.
 
-**Modelo de decisão para a classificação.** Decidir se a mensagem é sobre catálogo,
-pedido ou política hoje consome uma chamada completa de LLM. Essa escolha entre opções
-fechadas é o que um modelo de decisão faz mais rápido e mais barato. Fora do escopo
-agora porque está em acesso antecipado, o que impediria o avaliador de rodar o projeto.
+**Modelo de decisão para a classificação, com o JEV.** Decidir se a mensagem é sobre
+catálogo, pedido ou política hoje consome uma chamada completa de LLM. O JEV, da
+TypeSafe AI, é um modelo feito para esse tipo de escolha entre opções fechadas, e faz
+isso mais rápido e mais barato que uma chamada completa. Fora do escopo agora porque
+está em acesso antecipado, o que impediria o avaliador de rodar o projeto.
 
 **Conjunto de avaliação automatizado.** Hoje os testes garantem as regras, não a
 qualidade da resposta. Um conjunto de perguntas com o comportamento esperado pegaria
 regressão de prompt, que é o tipo de defeito que nenhum teste unitário vê. Foi assim
 que apareceram, rodando à mão, os três problemas documentados em
-[docs/DECISIONS.md](docs/DECISIONS.md).
+[docs/DECISIONS-PTBR.md](docs/DECISIONS-PTBR.md).
 
-**Teste de mutação**, para provar que a suíte detecta alteração no código em vez de só
-passar. Foi feito à mão em quatro regras, e deveria ser automático.
+**Teste de mutação**, para confirmar que a suíte quebra quando o código muda. Foi feito à mão em quatro regras, e deveria ser automático.
 
 ---
 
 ## Uso de assistente de IA
 
 O enunciado pede que o uso de ferramentas de IA seja explicado. O relato está em
-**[docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md)**: qual ferramenta, em que etapas, o que
+**[docs/AI_WORKFLOW-PTBR.md](docs/AI_WORKFLOW-PTBR.md)**: qual ferramenta, em que etapas, o que
 foi delegado, o que não foi, e as restrições que impus ao assistente, registradas em
-**[AGENTS.md](AGENTS.md)**.
+**[AGENTS-PTBR.md](AGENTS-PTBR.md)**.
 
 ---
 
@@ -226,13 +226,13 @@ Cinco conversas rodadas na interface, contra a base e o manual de verdade, em
 **[examples/](examples/)**. Cada print mostra a conversa e as consultas que o Tom fez
 para responder.
 
-1. **Promoção, PIX e parcelamento** — quatro números na resposta, nenhum calculado pelo
-   modelo, e o desconto tirando o produto da faixa de pagamento combinado
-2. **Entrega para outra cidade** — pergunta de política, e o Tom pedindo o CEP em vez de
-   estimar um frete que o material recebido não informa
-3. **Pedido em trânsito, com verificação de identidade** — o modelo chamou a ferramenta
-   com telefone e e-mail em branco, e não recebeu o pedido
-4. **Produto que ainda não está à venda** — lançamento futuro com estoque, uma
-   inconsistência da base, e o Tom não vendendo o que a loja não entrega
-5. **Pergunta fora do escopo da loja** — nenhuma ferramenta chamada, e o assunto de volta
-   para a loja
+1. **Promoção, PIX e parcelamento.** Quatro números na resposta, nenhum calculado pelo
+   modelo, e o desconto tirando o produto da faixa de pagamento combinado.
+2. **Entrega para outra cidade.** Pergunta de política, e o Tom pedindo o CEP em vez de
+   estimar um frete que o material recebido não informa.
+3. **Pedido em trânsito, com verificação de identidade.** O modelo chamou a ferramenta
+   com telefone e e-mail em branco, e não recebeu o pedido.
+4. **Produto que ainda não está à venda.** Lançamento futuro com estoque, uma
+   inconsistência da base, e o Tom não vendendo o que a loja não entrega.
+5. **Pergunta fora do escopo da loja.** Nenhuma ferramenta chamada, e o assunto de volta
+   para a loja.

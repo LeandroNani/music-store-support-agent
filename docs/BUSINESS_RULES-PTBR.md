@@ -37,10 +37,9 @@ adicional.
 > de R$ 359,00 aceita até 4x (R$ 89,75, acima do mínimo de R$ 80,00), mas não aceita 5x
 > (R$ 71,80) nem qualquer parcelamento na faixa de 7x a 12x.
 >
-> LLM não é boa com cálculo: ela prevê o próximo token e o resultado não é
-> determinístico. Então nenhuma conta é feita pelo agente. A função devolve o
-> parcelamento já resolvido e o Tom comunica. Vale para desconto, preço no PIX, frete e
-> contagem de prazo.
+> Nenhuma conta é feita pelo agente (D-14, que explica por quê). A função devolve o
+> parcelamento já resolvido e o Tom comunica. Vale para desconto, preço no PIX e
+> contagem de prazo. O frete não entra: o material recebido não dá a tabela.
 
 ### Trocas, devoluções e garantia
 
@@ -131,17 +130,19 @@ lista as inconsistências para o gerente corrigir na origem.
 
 ---
 
-### B-03 · Produto ativo com estoque zerado e promoções vencidas
+### B-03 · Produto ativo com estoque zerado e promoções desligadas
 
 O produto 96 (Giannini GF-3D, R$ 799,90) está `active` com estoque **zero**, tem duas
-promoções cadastradas (18% e 40%), **ambas vencidas**, e já foi vendido no pedido 4.
+promoções cadastradas (18% e 40%), **ambas desligadas** (`is_active = 0`), e já foi
+vendido no pedido 4. O manual fala em promoção vencida; a planilha só sabe dizer
+ligada ou desligada, sem data, então é desligada que o código aplica.
 
 **Decidido:** a busca devolve todos os produtos que atendem ao pedido do cliente, cada um
 marcado como **Em estoque** ou **Fora de estoque**. O produto faz parte do catálogo e só
 está sem peça no momento, então o cliente precisa saber que ele existe. O Tom sugere
 alternativa para o que estiver esgotado, como manda a §7.3.
 
-Nenhuma das duas promoções pode ser mencionada, por estarem vencidas.
+Nenhuma das duas promoções pode ser mencionada, por estarem desligadas.
 
 ---
 
@@ -172,8 +173,8 @@ saxofone ou um violino, a categoria existe mas não há o que vender.
 
 **Decidido:** o Tom responde que a loja trabalha com a categoria e no momento não tem
 peças disponíveis. A §1 do manual lista sopros e cordas orquestrais entre o que a loja
-vende, então não é fora de escopo, é falta de estoque. É a resposta verdadeira, e deixa
-a porta aberta para o cliente voltar.
+vende, então é falta de estoque e não falta de escopo. O cliente fica sabendo que pode
+voltar.
 
 ---
 
@@ -192,6 +193,10 @@ planilha. Regra (troca, frete, pagamento, garantia, tom de voz) vem do manual. O
 cita número total de produtos, porque não existe fonte confiável para esse número. A §7.1
 já aponta nessa direção, ao proibir informar estoque sem consultar o sistema.
 
+A §1 do manual chega inteira ao modelo, com o "mais de 300" dentro, então a decisão
+precisa estar no prompt: ele instrui a tirar número de produto da ferramenta e a não
+repetir o do manual. É regra de comunicação, não de cálculo, e por isso cabe ali.
+
 ---
 
 ### B-07 · Dois telefones diferentes no mesmo manual
@@ -199,10 +204,14 @@ já aponta nessa direção, ao proibir informar estoque sem consultar o sistema.
 A §1.2 informa o telefone (67) 3341-4444. A §7 informa que o canal de WhatsApp é o
 (67) 3321-4500. O e-mail também aparece em duas formas, uma delas com acento no domínio.
 
-**Decidido:** os dois telefones ficam. Ter um fixo para ligação e um para atendimento por
-texto é o padrão de loja no Brasil, então não é contradição, e o Tom informa o que fizer
-sentido na pergunta. Do e-mail, só a forma sem acento é endereço válido, e é a única que
-o Tom usa.
+**Decidido:** os dois telefones ficam, e o Tom informa o que fizer sentido na pergunta.
+A §1.2 rotula o 3341-4444 como "Telefone / WhatsApp" e a §7 dá outro número para
+WhatsApp, então é contradição mesmo, não é um fixo e um de texto. Para pergunta sobre
+atendimento por mensagem vale o número da §7, que é a seção que trata disso.
+
+Do e-mail, só a forma sem acento é endereço válido. A forma acentuada está na tabela
+da §1.2, que o Tom pode ler, então a correção está no prompt junto com a do número de
+produtos.
 
 ---
 
@@ -233,9 +242,9 @@ O filtro de preço usa o preço de tabela ou o preço com promoção? E o que ac
 produto descontinuado e produto esgotado?
 
 **Decidido:** o filtro usa o menor preço que o cliente consegue pagar, ou seja, o preço
-já com promoção ativa e também o preço no PIX. Se um violão de R$ 1.050,00 sai por
-R$ 997,50 no PIX, ele entra na busca por "até R$ 1.000", com o aviso de que só cabe no
-teto pagando no PIX. Esconder seria pior atendimento, porque o produto serve e só depende
+já com promoção ativa e também o preço no PIX. O Giannini GNF-3 custa R$ 1.049,00 e sai
+por R$ 996,55 no PIX, então entra na busca por "até R$ 1.000" com o aviso de que só
+cabe no teto pagando no PIX. Esconder seria pior atendimento, porque o produto serve e só depende
 da forma de pagamento.
 
 Produto sem estoque aparece na lista, marcado como **Fora de estoque**. Produto
@@ -283,10 +292,46 @@ de recebimento viria da transportadora.
 
 ---
 
+### B-12 · Troca por defeito num pedido que o cliente não recebeu
+
+A §4.2 dá 30 dias corridos **após a compra** para trocar produto com defeito de
+fabricação. O prazo conta da compra, não do recebimento, e é o único dos três assim.
+
+Seguindo o texto ao pé da letra, o pedido 20, que foi cancelado por endereço inválido,
+teria até 07/04/2026 para trocar por defeito. O mesmo vale para pedido pendente e para
+pedido que ainda está a caminho.
+
+**Decidido:** a janela só é informada para pedido entregue. A regra existe para trocar
+um produto com defeito, e um pedido cancelado nunca pôs produto nenhum na mão do
+cliente. A data de início continua sendo a da compra, como o manual manda.
+
+Dizer a um cliente que teve o pedido cancelado que ele ainda pode trocar o produto até
+uma data é pior do que não dizer nada: ele vai cobrar isso da loja.
+
+---
+
+### B-13 · O manual dá dois valores de parcela mínima
+
+A tabela da §3 diz "Cartão de Crédito | Até 12x sem juros | Parcela mínima de
+R$ 100,00". A §3.1 dá faixas: R$ 50,00 até 3x, R$ 80,00 de 4x a 6x, R$ 100,00 de 7x a
+12x. Com a primeira leitura, o Yamaha C40 de R$ 599,90 sai em no máximo 5x. Com a
+segunda, em 6x de R$ 99,98.
+
+**Decidido:** valem as faixas da §3.1. É a seção que trata de parcelamento e a mais
+específica das duas, enquanto a tabela da §3 é um resumo das formas de pagamento. O
+R$ 100,00 da tabela bate com o piso da última faixa, o que sugere que o resumo pegou o
+valor mais alto.
+
+É escolha, não leitura óbvia: quem adotar a tabela da §3 oferece menos parcelas em
+quase todo o catálogo.
+
+---
+
 ## Parte C · Matriz de rastreabilidade
 
-Preenchida conforme a implementação avança. Cada linha liga uma regra ao código que a
-aplica e ao teste que prova que ela é aplicada.
+Cada linha liga uma regra ao código que a aplica e ao teste que prova que ela é
+aplicada. Só entram aqui as regras que viraram código. O resto do manual é servido
+ao modelo como texto da seção, e a Parte A é que diz de onde cada uma saiu.
 
 ### Preço e pagamento
 
@@ -294,7 +339,7 @@ aplica e ao teste que prova que ela é aplicada.
 |---|---|---|---|
 | PIX dá 5% sobre o preço de tabela | §3 | `pricing.price_for_product` | `test_pix_discount_applies_to_list_price` |
 | O desconto do PIX não incide sobre preço já promocional | §6.2 | `pricing.price_for_product` | `test_pix_discount_does_not_stack_on_promotional_price` |
-| Promoção vencida não é aplicada nem mencionada | §7.3, B-03 | `pricing._active_promotion` | `test_expired_promotions_are_ignored` |
+| Promoção desligada não é aplicada nem mencionada | §7.3, B-03 | `pricing._active_promotion` | `test_inactive_promotions_are_ignored` |
 | Promoções não são cumulativas entre si | §6.2 | `pricing._active_promotion` | `test_promotions_never_stack_with_each_other` |
 | Parcela mínima de R$ 50,00 até 3x | §3.1 | `pricing.max_installments` | `test_installment_floor_up_to_three_times`, `test_installment_floor_applies_through_the_product_lookup` |
 | Parcela mínima de R$ 80,00 de 4x a 6x, e de R$ 100,00 de 7x a 12x | §3.1 | `pricing.max_installments` | `test_max_installments_respects_the_minimum_for_the_band` |
@@ -308,6 +353,8 @@ aplica e ao teste que prova que ela é aplicada.
 |---|---|---|---|
 | Categoria sem produto é informada como falta de estoque, não como fora de escopo | B-05 | `catalog.list_categories` | `test_categories_report_how_many_products_they_have` |
 | Produto descontinuado não aparece na busca | B-01 | `catalog.search_products` | `test_search_leaves_out_discontinued_products` |
+| A contagem por categoria não conta o descontinuado, para bater com a busca | B-01 | `catalog.list_categories` | `test_the_category_count_agrees_with_what_the_search_offers` |
+| O cliente pede corda de aço e a planilha grava steel | ETL | `catalog.STRING_MATERIALS` | `test_the_customer_asks_for_aco_and_the_catalogue_says_steel` |
 | Produto descontinuado é oferecido se o cliente pedir pelo nome | B-01 | `catalog.get_product_details` | `test_discontinued_product_is_found_when_asked_for_by_name` |
 | Produto esgotado aparece na busca, marcado | B-03 | `catalog.search_products` | `test_search_keeps_out_of_stock_products_and_marks_them` |
 | O filtro de preço usa o menor valor que o cliente consegue pagar | B-09 | `catalog.search_products` | `test_search_price_filter_uses_the_price_the_customer_can_pay` |
@@ -328,7 +375,9 @@ aplica e ao teste que prova que ela é aplicada.
 | Prazo de troca por defeito: 30 dias corridos da compra | §4.2, B-11 | `orders._deadlines` | `test_deadlines_are_calculated_in_code_not_by_the_model` |
 | Garantia legal: 90 dias do recebimento | §8.1, B-11 | `orders._deadlines` | `test_deadlines_are_calculated_in_code_not_by_the_model` |
 | Prazo fechado é informado com a data em que fechou | §4.1, D-14 | `orders._deadlines` | `test_an_expired_window_is_reported_as_expired` |
-| Pedido não entregue não tem prazo contado | B-11 | `orders._deadlines` | `test_an_order_not_yet_delivered_has_no_deadlines_to_report` |
+| Pedido não entregue não tem prazo de arrependimento nem de garantia | B-11 | `orders._deadlines` | `test_an_order_not_yet_delivered_has_no_deadlines_to_report` |
+| Previsão de entrega só vale como recebimento se o pedido foi entregue | B-11 | `orders.get_order_status` | `test_a_shipped_order_has_not_been_received_yet` |
+| Pedido cancelado ou não entregue não tem janela de troca por defeito | §4.2, B-12 | `orders._deadlines` | `test_a_cancelled_order_has_no_exchange_window`, `test_an_undelivered_order_has_no_exchange_window_either` |
 | A pontuação do telefone não reprova o cliente | B-10 | `db.digits_only` | `test_the_customer_may_type_the_phone_any_way_they_like` |
 | Maiúscula no e-mail não reprova o cliente | B-10 | `db.normalize_email` | `test_the_email_is_not_case_sensitive` |
 

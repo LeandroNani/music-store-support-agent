@@ -19,3 +19,7 @@ venv/
 
 # Local tooling
 .claude/
+
+# Entrega do Forms, gerada a partir do README
+*.pdf
+!data/raw/store_policies.pdf

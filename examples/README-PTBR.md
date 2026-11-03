@@ -47,7 +47,7 @@ cliente antes de chamar. Ele chamou mesmo assim, preenchendo os dois com string 
 A função procurou o pedido 8 com aqueles dados, não encontrou nenhum que batesse e
 devolveu nada encontrado. Só então o Tom pediu telefone e e-mail. Se a verificação fosse
 uma instrução no prompt em vez de um parâmetro, o pedido da Ana Carolina teria saído
-para quem digitou o número 8. Decisão D-06 em [docs/DECISIONS.md](../docs/DECISIONS.md).
+para quem digitou o número 8. Decisão D-06 em [docs/DECISIONS-PTBR.md](../docs/DECISIONS-PTBR.md).
 
 Com os dados certos, vem código de rastreamento e previsão de entrega. A previsão é
 anterior a hoje, e a resposta diz isso: era 28/02/2026.
@@ -64,8 +64,8 @@ unidades em estoque. O Tom informa que ainda não está disponível em vez de ve
 a loja não pode entregar, e oferece alternativa.
 
 Na lista que vem em seguida ele aparece de novo, entre os outros dois barítonos e
-marcado como em breve. Produto indisponível não some da busca: some a chance de o
-cliente perguntar de novo pelo mesmo modelo.
+marcado como em breve. Produto indisponível continua na busca, marcado. Esconder faria
+o cliente achar que a loja não trabalha com aquilo.
 
 ## 5. Pergunta fora do escopo da loja
 
@@ -74,5 +74,5 @@ cliente perguntar de novo pelo mesmo modelo.
 ![](05-pergunta-fora-do-escopo.png)
 
 Nenhuma ferramenta é chamada, como o painel registra. O Tom diz o que atende e volta
-para o assunto da loja. Um agente de atendimento que responde qualquer coisa é uma conta
-de API aberta para o público usar como quiser.
+para o assunto da loja. Responder qualquer coisa transformaria a conta de API da loja
+num serviço gratuito para quem quiser usar.
