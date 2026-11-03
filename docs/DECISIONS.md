@@ -40,7 +40,7 @@ the policy manual, both or neither.
 **I chose my own loop.** The single prompt is out because it removes the decision the
 brief asks me to demonstrate. The frameworks work, but they hide the loop behind
 ready-made abstraction, and what is being evaluated here is how I structure the
-orchestration. They also bring dozens of dependencies to a five tool problem.
+orchestration. They also bring dozens of dependencies to a five-tool problem.
 
 **Where it breaks down.** With dozens of tools, multiple agents or branching flows, a
 framework's abstraction starts to pay for itself.
@@ -58,7 +58,7 @@ section for each question.
 - Converting it to Markdown and exposing a tool that returns the section asked for
 
 **I chose the tool by section.** A similarity search can bring back half a section or the
-neighbouring section, and the result varies. Looking up the numbered section returns the
+neighboring section, and the result varies. Looking up the numbered section returns the
 exact passage, the same every time, with no new infrastructure. The whole manual does fit
 in the prompt, but it erases the decision between data and policies that the brief asks
 me to demonstrate.
@@ -79,7 +79,7 @@ the queries.
 
 **I considered**
 - The model writes the SQL
-- Queries written by hand and parameterised, exposed as tools
+- Queries written by hand and parameterized, exposed as tools
 
 **I chose the queries written by hand.** The criterion is predictability, not volume. The
 five tools cover what the brief gives as examples: price, availability, price range,
@@ -110,7 +110,7 @@ crossing four of them: order, items, products and customer.
 
 **I chose SQLite in memory.** Crossing four tables becomes one query, instead of manual
 code repeated in every tool. `sqlite3` already ships with Python, so it adds no
-dependency. And keeping the database in memory only leaves the original CSVs intact:
+dependency. And keeping the database in memory, and nowhere else, leaves the original CSVs intact:
 nothing the agent does changes the material I was given.
 
 **Where it breaks down.** The database is rebuilt on every start. Instant at this volume,
@@ -137,13 +137,13 @@ The split is not between rules in the code and nothing in the prompt. What stays
 Python is what decides a figure and eligibility: discount, installments, stock, deadline,
 identity. What stays in the prompt is how to communicate the result, for example always
 giving the PIX price together with the list price, or saying that a product has been
-discontinued instead of just leaving the model out. Those lines calculate nothing, and if
-the model forgets one of them the answer gets worse, it does not get wrong.
+discontinued instead of just dropping it from the list. Those lines calculate nothing,
+and if the model forgets one of them the answer gets worse, not wrong.
 
 The practical effect is that the correctness of the system becomes testable without
 calling the model.
 
-**Where it breaks down.** A new rule takes a change in code, not in text.
+**Where it breaks down.** A new rule requires a code change, not in text.
 
 ---
 
@@ -184,7 +184,7 @@ decision is invisible and whoever is evaluating has to trust that it happened. W
 panel, it is observable. The data already exists inside the loop, so showing it costs
 little.
 
-The panel is a development instrument. In production it would not be shown to the
+The panel is a development tool. In production it would not be shown to the
 customer.
 
 **Where it breaks down.** Streamlit is a prototype, not a production interface.
@@ -202,9 +202,9 @@ an API.
 
 **I chose the OpenAI API, with GPT-6 Luna.** The central mechanism of this architecture
 is function calling, and OpenAI's implementation is native and mature, with parallel
-calls and stable behaviour when a tool returns an error.
+calls and stable behavior when a tool returns an error.
 
-Luna is the cheapest model in the line, and it copes because the model's job here is
+Luna is the cheapest model in the lineup, and it copes because the model's job here is
 narrow: pick the right tool and write a short answer. All the work that needs precision,
 including calculation and applying a rule, happens in Python before it reaches the model.
 
@@ -219,7 +219,7 @@ deliberation the parameter buys would be spent on work Python has already done. 
 parameter is passed as an option, not fixed in the code, because another model may not
 need it.
 
-**Where it breaks down.** Running the project takes an API key. Access to the provider is
+**Where it breaks down.** Running the project requires an API key. Access to the provider is
 isolated in one module, so switching provider or model is a local change.
 
 ---
@@ -340,7 +340,7 @@ advertising, which section 7.1 of the manual says to avoid.
 In practice, `get_product_details` returns the installments already worked out, such as
 4x of R$ 89,75. Tom never divides 359 by 4.
 
-**Where it breaks down.** Every new calculation takes a change in code, instead of an
+**Where it breaks down.** Every new calculation requires a code change, instead of an
 adjustment in the prompt.
 
 
@@ -431,7 +431,7 @@ explicit instead of accidental.
 **What goes inside the prompt.** How to speak, what to do in each situation the manual
 covers, and the manual's index: the numbers and titles of the sections, injected on every
 call so the model knows which one to ask for. The text of the sections does not go in,
-which keeps the prompt at around five thousand characters.
+which keeps the prompt at around five and a half thousand characters.
 
 **What does not go in.** Nothing that decides a figure or eligibility (D-05). The lines
 that are left are about communication, and if the model varies their form the answer
@@ -450,7 +450,7 @@ change without any test noticing.
 **Problem.** The brief asks for the reasoning behind the data handling. The material I
 was given is six CSVs and a manual in pdf, and neither of the two is ready to query.
 
-**I chose to normalize on the load and never touch the original files.** Everything the
+**I chose to normalize at load time and never touch the original files.** Everything the
 ETL does is in `emporio/db.py`, runs when the application starts, and the files in
 `data/raw` stay byte for byte as they came.
 
@@ -458,7 +458,7 @@ What the load resolves, and why each one turned up:
 
 - **Unicode NFC.** "Ponta Porã" appears in the CSVs in two different Unicode forms, with
   the tilde as a separate character on some rows. Two identical cities do not match in a
-  comparison. Normalizing on the load is the only place where this is resolved once.
+  comparison. Normalizing at load time is the only place where this is resolved once.
 - **Phone number reduced to digits.** The record holds `(67) 99789-0123` and the customer
   types it however they like. The derived `phone_digits` column exists so the comparison
   does not depend on punctuation.
@@ -483,5 +483,5 @@ there is no test comparing the markdown with the text extracted from the pdf. If
 edits the markdown, nothing flags it. In a project that was going to continue, that
 comparison would become a test.
 
-The ETL also trusts the format of the CSVs: a row with an empty price brings down the
-application start with a conversion error, instead of being reported as an invalid row.
+The ETL also trusts the format of the CSVs: a row with an empty price crashes the
+application at startup with a conversion error, instead of being reported as an invalid row.

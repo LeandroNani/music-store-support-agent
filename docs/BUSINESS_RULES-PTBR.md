@@ -121,7 +121,7 @@ O produto 130 (Kala KA-ABP-CTG Barítono) está marcado como `coming_soon` com 2
 mas aparece em dois pedidos já realizados: o pedido 3, entregue em dezembro de 2025, e o
 pedido 14, pendente.
 
-**Decidido:** o Tom não vende e informa a previsão. O status é o campo que o sistema
+**Decidido:** o Tom não vende e informa que ainda não está à venda. O status é o campo que o sistema
 expõe, e o Tom não deve inferir que um cadastro está errado só porque o histórico
 discorda dele.
 

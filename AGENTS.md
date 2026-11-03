@@ -13,7 +13,7 @@ assistant's. Its job is to help by raising options I had not mapped, saying what
 costs, and carrying out the choice.
 
 - Ambiguity found during development is brought to me, not resolved on its own.
-- **If it can be found out without me, find it out.** Library behaviour is tested by
+- **If it can be found out without me, find it out.** Library behavior is tested by
   calling the library. Only decisions of taste, of priority, of cost or of contract reach
   me.
 - Every decision taken is recorded in [docs/DECISIONS.md](docs/DECISIONS.md).
@@ -38,7 +38,7 @@ The assistant's job is to tell me what is true, not what makes me comfortable.
 - Never treat an inference of yours as something I said.
 - A small and unavoidable assumption is allowed, as long as it comes listed in the
   answer, separate from what I actually said.
-- A decision that affects behaviour, architecture, data, security or cost is never a
+- A decision that affects behavior, architecture, data, security or cost is never a
   trivial assumption.
 
 ## How to ask me a question
@@ -70,7 +70,7 @@ the assistant would do and why.
   conversation script, and no line of it decides a number.
 - **The model does no arithmetic.** Discount, PIX price, installments and deadline
   counting are calculated in Python and returned ready.
-- **The model does not write SQL.** The queries are written by hand and parameterised.
+- **The model does not write SQL.** The queries are written by hand and parameterized.
 - **No answer about price, stock or deadline without a tool call.**
 - **The agent has no write tool.** Nothing creates, changes or deletes data.
 - **The original files in `data/` are read only.** No code modifies them.
@@ -79,7 +79,7 @@ the assistant would do and why.
 
 - No test exists without a matching line in
   [docs/BUSINESS_RULES.md](docs/BUSINESS_RULES.md), pointing to a section of the store's
-  policy manual or to an anomaly found in the data.
+  policy manual, to an anomaly found in the data, or to a decision in DECISIONS.md.
 - The test is written before the code and has to be seen failing.
 - During the work, only the test file that covers what changed is run. The full suite
   runs once, before the commit.
@@ -119,7 +119,7 @@ infrastructure is out, and what is out is listed in [docs/ASSUMPTIONS.md](docs/A
   one that is evaluated is the English one, and the Portuguese one carries the `-PTBR`
   suffix.
 - Lean text: a word that can go without changing the meaning, goes.
-- Plain language, the way an IT team writes and talks among itself.
+- Plain language, the way people on an engineering team write and talk to each other.
 - No set-piece sentence closing a paragraph.
 - Every statement has to be verifiable. An estimated number is not presented as a
   measured one.

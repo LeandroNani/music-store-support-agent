@@ -14,7 +14,7 @@ Empório da Música is an instrument store in Campo Grande/MS. Customer service 
 entirely by the team, which is overloaded with recurring questions: opening hours, order
 status, price and availability.
 
-Tom absorbs those questions. For that he needs two different sources: the operational
+Tom absorbs those questions. To do that he needs two different sources: the operational
 data, which sits in spreadsheets, and the internal policy manual, which is a text
 document in pdf. Deciding which of the two to query, on every message, is the central
 problem of this project.
@@ -47,7 +47,7 @@ Run the tests, which need no key and no internet:
 pytest
 ```
 
-The default model is `gpt-6-luna`, the cheapest in the line with native tool calling. To
+The default model is `gpt-6-luna`, the cheapest in the lineup with native tool calling. To
 change it, edit `OPENAI_MODEL` in `.env`.
 
 The database is built in memory from the CSVs in `data/raw` every time the application
@@ -75,8 +75,8 @@ flowchart TD
 ```
 
 The agent never reaches the data directly. It calls functions, and the functions apply
-the store's rules before returning the result: the price arrives with a promotion
-switched off already discarded, a product that has run out arrives flagged as out of
+the store's rules before returning the result: the price arrives with any switched-off
+promotion already discarded, a product that has run out arrives flagged as out of
 stock, and a customer's order only arrives if whoever is asking has confirmed their
 contact details.
 
@@ -84,7 +84,7 @@ contact details.
 
 | Tool | What for | What comes already resolved |
 |---|---|---|
-| `search_products` | Search by type, price range, string or pickup | Final price, PIX price, stock status, 10 per page plus the total |
+| `search_products` | Search by type, price range, string material or pickup | Final price, PIX price, stock status, 10 per page plus the total |
 | `get_product_details` | A specific model, by name or by code | Active promotion, maximum installments, specifications |
 | `get_order_status` | The status of an order | Identity checked, return and warranty deadlines already calculated |
 | `list_categories` | What the store works with | How many products each category holds today |
@@ -107,27 +107,29 @@ and what the choice costs. The main ones:
 | Security | Identity check as a required function parameter |
 | Interface | Streamlit, with a trace panel for development |
 | Prompt | A single system prompt, with the manual's index injected, no examples |
-| Data handling | Normalization on the load, and the manual transcribed from pdf to markdown |
+| Model and provider | OpenAI API with GPT-6 Luna, for native and mature function calling (D-08) |
+| Conversation history | Kept within the session so follow-up questions work, not across sessions (S-05) |
+| Data handling | Normalization at load time, and the manual transcribed from pdf to markdown |
 
 ---
 
 ## Assumptions
 
-The assignment asks for ambiguities to be resolved with a reasonable interpretation and
+The brief asks for ambiguities to be resolved with a reasonable interpretation and
 documented. There are eight, in **[docs/ASSUMPTIONS.md](docs/ASSUMPTIONS.md)**. The ones
 that change the behavior most:
 
 - **Tom talks to the customer**, not to the team. Section 7 of the manual already had
-  the virtual assistant doing customer service, and the help to the team comes from
+  the virtual assistant doing customer service, and the way it helps the team is by
   absorbing the repeated questions.
 - **WhatsApp is the channel in the story, not a technical requirement.** That sets the
-  tone, and it has a price: without the real channel, the customer's phone number does
-  not arrive verified.
+  tone, and it has a price: without the real channel, the customer's phone number is
+  not verified.
 - **The agent uses the real date.** The orders in the dataset run up to March 2026, so
   the return windows have already closed, and the right answer becomes stating the date
   on which each one closed.
-- **Tom only reads.** He does not create, does not cancel, does not change registration
-  data and does not log a complaint, because there is nowhere to write and because an
+- **Tom only reads.** He does not create, does not cancel, does not change a customer
+  record and does not log a complaint, because there is nowhere to write and because an
   agent that talks to the public and writes to the database needs controls beyond the
   scope of a prototype.
 
@@ -153,7 +155,7 @@ have no row.
 
 The defense sits in how the agent is built, not in a prompt instruction.
 Tom never receives a customer's order unless the phone number and e-mail have matched the
-registration, because the check is a required function parameter. He has no way to
+record, because the check is a required function parameter. He has no way to
 reveal data that never reached him, and he has no tool that creates, changes or deletes
 anything.
 
@@ -170,7 +172,7 @@ The full reasoning, including a vector that is still open, is in
 ## Known limitations
 
 - **The phone number given is not verified.** The identity check compares what the
-  customer types with the registration. On real WhatsApp, the number would come from the
+  customer types with the record. On real WhatsApp, the number would come from the
   connection.
 - **The date of receipt does not exist in the dataset.** The deadlines count from the
   estimated delivery, which is the closest field. An order that was late has the wrong
@@ -178,7 +180,7 @@ The full reasoning, including a vector that is still open, is in
 - **No usage limit.** There is no control on attempts or on volume per customer. It is
   deliberate: in a prototype with no persistent identity, that control resets when the
   person opens another conversation.
-- **A product description is free text the store fills in** and that reaches the model's
+- **A product description is free text that the store fills in** and that reaches the model's
   context. The tools return data with labeled fields to reduce the risk, but the vector
   is still open.
 - **The history does not survive the session.** Close the tab and the conversation is over.
@@ -193,7 +195,7 @@ and the identity check stops depending on what the customer types. It is the mos
 limitation in the list above.
 
 **Admin panel.** Three things the manager needs to see and nobody sees today: the
-registration inconsistencies this dataset has (a coming soon product already sold, an
+data inconsistencies this dataset has (a coming-soon product already sold, an
 order with a total that differs from the sum of its items, a discontinued product with
 stock), the lookups that failed the check, and the questions Tom could not answer.
 
@@ -217,10 +219,14 @@ in [docs/DECISIONS.md](docs/DECISIONS.md) turned up, running by hand.
 
 ## Use of an AI assistant
 
-The assignment asks for the use of AI tools to be explained. The account is in
-**[docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md)**: which tool, at which stages, what was
-delegated, what was not, and the constraints I put on the assistant, recorded in
-**[AGENTS.md](AGENTS.md)**.
+The brief asks for the use of AI tools to be explained. The tool was Claude Code, in
+Anthropic's desktop application: it drafted, implemented the tools and the interface,
+and wrote the tests from the rule catalogue, while the approach, the scope and every
+conflict decision stayed with me.
+
+The full account is in **[docs/AI_WORKFLOW.md](docs/AI_WORKFLOW.md)**: which tool, at
+which stages, what was delegated, what was not, and the constraints I put on the
+assistant, recorded in **[AGENTS.md](AGENTS.md)**.
 
 ---
 

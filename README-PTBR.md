@@ -104,6 +104,8 @@ e o que a escolha custa. As principais:
 | Segurança | Verificação de identidade como parâmetro obrigatório da função |
 | Interface | Streamlit, com painel de trace para desenvolvimento |
 | Prompt | Um prompt de sistema só, com o índice do manual injetado, sem exemplos |
+| Modelo e provedor | API da OpenAI com o GPT-6 Luna, por function calling nativo e maduro (D-08) |
+| Histórico de conversa | Mantido dentro da sessão, para a pergunta de acompanhamento funcionar, e não entre sessões (S-05) |
 | Tratamento dos dados | Normalização na carga, e o manual transcrito do pdf para markdown |
 
 ---
@@ -213,7 +215,12 @@ que apareceram, rodando à mão, os três problemas documentados em
 
 ## Uso de assistente de IA
 
-O enunciado pede que o uso de ferramentas de IA seja explicado. O relato está em
+O enunciado pede que o uso de ferramentas de IA seja explicado. A ferramenta foi o
+Claude Code, no aplicativo de desktop da Anthropic: ele redigiu rascunhos, implementou
+as ferramentas e a interface, e escreveu os testes a partir do catálogo de regras,
+enquanto a abordagem, o escopo e a decisão sobre cada conflito ficaram comigo.
+
+O relato completo está em
 **[docs/AI_WORKFLOW-PTBR.md](docs/AI_WORKFLOW-PTBR.md)**: qual ferramenta, em que etapas, o que
 foi delegado, o que não foi, e as restrições que impus ao assistente, registradas em
 **[AGENTS-PTBR.md](AGENTS-PTBR.md)**.

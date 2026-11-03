@@ -101,7 +101,7 @@ of the decisions, and the e-mail is answered with the same link.
 **The ambiguity.** The brief asks for a prototype and says the focus is the agent working
 correctly, without defining what is left out.
 
-**Assumed:** what is left out is everything that is operations and not agent behaviour.
+**Assumed:** what is left out is everything that is operations and not agent behavior.
 No user authentication, no deploy, no container, no continuous integration, no server
 database and no monitoring. What is in is the agent being correct, tested against the
 rules that matter, and runnable on the evaluator's machine.
@@ -116,10 +116,9 @@ the staff member uses while talking to the customer. The two change everything: 
 second needs no identity check at all, because whoever is asking is already from the
 store.
 
-**Assumed:** Tom talks to the customer. Section 7 of the manual describes a virtual
-assistant that gives the first answer and brings in the team when it does not resolve
-things, and the help to the team comes from absorbing the repeated questions before they
-reach a person.
+**Assumed:** Tom talks to the customer. Section 7 of the manual already puts the virtual
+assistant on the WhatsApp channel alongside the human staff, and the way it helps the
+team is by absorbing the repeated questions before they reach a person.
 
 The consequence is the identity check. If Tom talked to the team, asking for a phone
 number and an e-mail to pull up an order would be pointless friction.

@@ -112,9 +112,9 @@ Isso tem duas leituras: o Tom responde ao cliente, ou o Tom é uma ferramenta de
 que o atendente usa enquanto conversa com o cliente. As duas mudam tudo: a segunda não
 precisa de verificação de identidade nenhuma, porque quem pergunta já é da loja.
 
-**Assumido:** o Tom fala com o cliente. A §7 do manual descreve um assistente virtual
-que faz a primeira resposta e aciona a equipe quando não resolve, e o auxílio à equipe
-vem de absorver as perguntas repetidas antes que elas cheguem a uma pessoa.
+**Assumido:** o Tom fala com o cliente. A §7 do manual já põe o assistente virtual no
+canal de WhatsApp ao lado dos atendentes humanos, e o auxílio à equipe vem de absorver
+as perguntas repetidas antes que elas cheguem a uma pessoa.
 
 A consequência é a verificação de identidade. Se o Tom falasse com a equipe, pedir
 telefone e e-mail para abrir um pedido seria atrito inútil.

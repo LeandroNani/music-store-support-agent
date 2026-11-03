@@ -2,7 +2,7 @@
 
 The store's manual is a pdf written for the team to read. The data sits in six
 spreadsheets. For Tom to work, every rule in the manual had to become code, and in
-several places the manual argues with the data.
+several places the manual contradicts the data.
 
 This document is that work: what the manual requires, what the data shows, and what was
 decided where the two disagree. No test in this repository exists without a line here.
@@ -123,7 +123,7 @@ Product 130 (Kala KA-ABP-CTG Barítono) is flagged `coming_soon` with 2 units, b
 shows up in two orders already placed: order 3, delivered in December 2025, and order
 14, pending.
 
-**Decided:** Tom does not sell it and states the expected date. The status is the field
+**Decided:** Tom does not sell it and says it is not on sale yet. The status is the field
 the system exposes, and Tom should not infer that a record is wrong just because the
 history disagrees with it.
 
@@ -272,7 +272,7 @@ national ID and no password.
 already comes from the channel, verified, without the customer having to state it. The
 number would not be asked for, it would be read from the connection, and Tom would ask
 only for the e-mail as a second factor. If the person gave a phone number different from
-the connected one, there would be no authorisation.
+the connected one, there would be no authorization.
 
 **Decided:** since this prototype has no WhatsApp integration, nothing arrives verified.
 So Tom asks for **the phone number and the e-mail**, and both have to match the record
@@ -398,7 +398,7 @@ from.
 
 | Rule | Source | Where it is applied | Test |
 |---|---|---|---|
-| The lookup returns the exact section asked for, never the neighbouring one | D-02 | `policies.get_section` | `test_subsection_returns_only_itself` |
+| The lookup returns the exact section asked for, never the neighboring one | D-02 | `policies.get_section` | `test_subsection_returns_only_itself` |
 | Asking for a section brings its subsections too | D-02 | `policies.get_section` | `test_section_includes_its_subsections` |
 | A section that does not exist fails instead of returning the nearest one | D-02 | `policies.get_section` | `test_unknown_section_is_reported_not_invented` |
 | The manual's index goes into the prompt, the text does not | D-02 | `policies.list_sections`, `persona.build_system_prompt` | `test_index_lists_every_section_and_subsection` |

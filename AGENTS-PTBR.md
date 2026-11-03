@@ -80,7 +80,7 @@ faria e por quê.
 
 - Nenhum teste existe sem uma linha correspondente em
   [docs/BUSINESS_RULES-PTBR.md](docs/BUSINESS_RULES-PTBR.md), apontando para uma seção do manual
-  da loja ou para uma anomalia encontrada nos dados.
+  da loja, para uma anomalia encontrada nos dados, ou para uma decisão do DECISIONS.
 - O teste é escrito antes do código e precisa ser visto falhando.
 - Durante o trabalho, roda só o arquivo de teste que cobre o que mudou. A bateria
   completa roda uma vez, antes do commit.

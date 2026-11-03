@@ -2,7 +2,7 @@
 
 Five conversations run in the interface, against the real dataset and the real manual.
 Each screenshot shows the two columns: the conversation on the left, the lookups Tom made
-on the right. In the right hand panel, the most recent lookup appears on top.
+on the right. In the right-hand panel, the most recent lookup appears on top.
 
 Tom's reference date is the machine's real date. The screenshots were taken on
 **2026-11-02**.
