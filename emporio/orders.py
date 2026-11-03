@@ -62,13 +62,17 @@ def _deadlines(order_date: str, received_on: str | None) -> Deadlines:
     defect_limit = purchase + timedelta(days=DEFECT_EXCHANGE_DAYS)
 
     if received_on is None:
-        # Nothing was received, so no window counted from receipt has started.
+        # Nothing was received, so no window is open. Manual 4.2 counts the
+        # thirty days from the purchase, but it is a window to exchange a
+        # faulty product, and a cancelled or undelivered order never put one in
+        # the customer's hands. Reporting it would tell someone whose order was
+        # cancelled that they still have until a date to exchange it.
         return Deadlines(
             received_on=None,
             withdrawal_deadline=None,
             withdrawal_open=False,
-            defect_exchange_deadline=defect_limit.isoformat(),
-            defect_exchange_open=now <= defect_limit,
+            defect_exchange_deadline=None,
+            defect_exchange_open=False,
             legal_warranty_until=None,
             legal_warranty_open=False,
         )

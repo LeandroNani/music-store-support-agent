@@ -4,7 +4,8 @@ Every rule here is enforced in code rather than described in the prompt, so the
 model never sees a raw price: it receives the figure the customer actually pays
 and only has to communicate it. See docs/BUSINESS_RULES.md for the rule sources.
 
-Money uses Decimal, not float. A cent lost to binary rounding is a wrong price.
+Money is converted to Decimal on the way out. The CSV columns load as REAL,
+which holds these magnitudes exactly, and no arithmetic touches the float.
 """
 
 from __future__ import annotations

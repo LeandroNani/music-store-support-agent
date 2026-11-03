@@ -166,3 +166,50 @@ def test_an_order_not_yet_delivered_has_no_deadlines_to_report(db):
 
     assert order.deadlines.received_on is None
     assert order.deadlines.withdrawal_open is False
+
+
+def _credentials(db, order_id):
+    row = db.execute(
+        "SELECT phone, email FROM customers WHERE customer_id = "
+        "(SELECT customer_id FROM orders WHERE order_id = ?)",
+        (order_id,),
+    ).fetchone()
+    return {"phone": row["phone"], "email": row["email"]}
+
+
+def test_a_shipped_order_has_not_been_received_yet(db):
+    """Order 8 is shipped and carries an estimated delivery of 2026-02-28.
+
+    B-11 uses the estimated delivery as the receipt date, which only holds for
+    an order that arrived. Order 8 is the one order in this base that has the
+    estimate without the delivery, so it is the one that proves the guard: drop
+    it and this order starts reporting a return window counted from a delivery
+    that never happened.
+    """
+    order = get_order_status(db, 8, **_credentials(db, 8))
+
+    assert order.status == "shipped"
+    assert order.estimated_delivery == "2026-02-28"
+    assert order.deadlines.received_on is None
+    assert order.deadlines.withdrawal_deadline is None
+
+
+def test_a_cancelled_order_has_no_exchange_window(db):
+    """Manual 4.2 counts thirty days from the purchase, for a faulty product.
+
+    Order 20 was cancelled, so no product reached the customer and there is
+    nothing to exchange. The window used to be reported open, and the persona
+    tells the agent to state the date it finds.
+    """
+    order = get_order_status(db, CANCELLED_ORDER, **_credentials(db, CANCELLED_ORDER))
+
+    assert order.status == "cancelled"
+    assert order.deadlines.defect_exchange_deadline is None
+    assert order.deadlines.defect_exchange_open is False
+
+
+def test_an_undelivered_order_has_no_exchange_window_either(db):
+    """Same rule, for an order still being prepared: order 13 is pending."""
+    order = get_order_status(db, 13, **_credentials(db, 13))
+
+    assert order.deadlines.defect_exchange_open is False

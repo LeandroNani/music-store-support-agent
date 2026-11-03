@@ -163,8 +163,8 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             "name": "list_categories",
             "description": (
                 "Categorias do catálogo e quantos produtos cada uma tem. Use para "
-                "saber se a loja trabalha com um tipo de instrumento e se há peça "
-                "disponível."
+                "saber se a loja trabalha com um tipo de instrumento. A contagem "
+                "não diz o que está em estoque: para isso use search_products."
             ),
             "parameters": {"type": "object", "properties": {}},
         },

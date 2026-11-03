@@ -14,7 +14,7 @@ from emporio.pricing import max_installments, price_for_product
 # Products used below, straight from the dataset.
 YAMAHA_C40 = 81  # R$ 599.90, no promotion
 KALANI_TENOR = 127  # R$ 359.00, 10% promotion, active
-GIANNINI_GF3D = 96  # R$ 799.90, two promotions, both expired
+GIANNINI_GF3D = 96  # R$ 799.90, two promotions, both switched off
 CRAFTER_HT100 = 90  # R$ 2399.00, 18% promotion, active
 
 
@@ -53,10 +53,11 @@ def test_pix_discount_does_not_stack_on_promotional_price(db):
     assert price.pix_price != Decimal("306.95")
 
 
-def test_expired_promotions_are_ignored(db):
+def test_inactive_promotions_are_ignored(db):
     """Manual 7.3: never promise a discount that is no longer running.
 
-    Product 96 carries an 18% and a 40% promotion in the dataset. Both are expired.
+    Product 96 carries an 18% and a 40% promotion in the dataset, both with
+    is_active = 0. The table has no dates, so off is all the data can say.
     """
     price = price_for_product(db, GIANNINI_GF3D)
 

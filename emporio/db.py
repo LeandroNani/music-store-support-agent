@@ -1,7 +1,7 @@
-"""Banco em memória montado a partir dos CSVs originais.
+"""In-memory database built from the original CSVs.
 
-Os arquivos em data/raw são lidos e nunca alterados. O banco existe apenas
-enquanto o processo roda, e é reconstruído a cada subida.
+The files in data/raw are read and never written to. The database lives only
+as long as the process, and is rebuilt every time the application starts.
 """
 
 from __future__ import annotations
@@ -76,10 +76,10 @@ CREATE INDEX idx_order_items_order ON order_items(order_id);
 
 
 def normalize_text(value: str | None) -> str | None:
-    """Unicode NFC e espaços das pontas.
+    """Unicode NFC, and trim the ends.
 
-    Os CSVs trazem "Ponta Porã" em duas formas Unicode diferentes, o que faz
-    duas cidades iguais não baterem numa comparação.
+    The CSVs carry "Ponta Porã" in two different Unicode forms, which makes two
+    identical city names fail to match.
     """
     if value is None:
         return None
@@ -88,7 +88,7 @@ def normalize_text(value: str | None) -> str | None:
 
 
 def digits_only(value: str | None) -> str | None:
-    """Telefone reduzido a dígitos, para comparar com o que o cliente digita."""
+    """Phone reduced to digits, to compare with whatever the customer types."""
     if not value:
         return None
     return re.sub(r"\D", "", value) or None
@@ -117,11 +117,11 @@ def _read_csv(name: str) -> list[dict[str, str | None]]:
 
 
 def build_database(same_thread: bool = True) -> sqlite3.Connection:
-    """Monta o banco em memória e devolve a conexão.
+    """Build the in-memory database and return the connection.
 
-    Streamlit pode reexecutar o script em outra thread entre uma mensagem e a
-    seguinte, e a conexão fica guardada na sessão. Por isso a interface passa
-    same_thread=False.
+    Streamlit may re-run the script on a different thread between one message
+    and the next, while the connection stays in the session, which is why the
+    interface passes same_thread=False.
     """
     conn = sqlite3.connect(":memory:", check_same_thread=same_thread)
     conn.row_factory = sqlite3.Row

@@ -36,7 +36,35 @@ def test_categories_report_how_many_products_they_have(db):
     assert categories["Instrumentos de Sopro (Madeiras)"] == 0
     assert categories["Instrumentos de Sopro (Metais)"] == 0
     assert categories["Cordas Orquestrais"] == 0
-    assert categories["Violões"] == 35
+    assert categories["Violões"] == 34
+
+
+def test_the_category_count_agrees_with_what_the_search_offers(db):
+    """B-01: a discontinued product is out of the catalogue, so it is out of both.
+
+    The count and the search used to disagree by one guitar, and the agent has
+    no way of telling which number is the real one.
+    """
+    counts = {c.name: c.product_count for c in list_categories(db)}
+
+    for name in ("Violões", "Baixos"):
+        assert counts[name] == search_products(db, category=name).total
+
+
+def test_the_customer_asks_for_aco_and_the_catalogue_says_steel(db):
+    """The schema offers "nylon ou aço"; specs store "steel".
+
+    Without the translation the filter matches nothing and the agent reports no
+    steel-string guitars, which the manual's 7.1 forbids: never state stock
+    without checking the system.
+    """
+    steel = search_products(db, category="Violões", strings="aço")
+    nylon = search_products(db, category="Violões", strings="nylon")
+
+    assert steel.total > 0
+    assert steel.total == search_products(db, category="Violões", strings="steel").total
+    assert nylon.total > 0
+    assert steel.total + nylon.total <= search_products(db, category="Violões").total
 
 
 def test_search_leaves_out_discontinued_products(db):

@@ -79,17 +79,28 @@ def list_categories(conn: sqlite3.Connection) -> list[Category]:
 
     The count matters: three categories in this catalogue have none, and the
     agent has to say the store works with them but has nothing in stock (B-05).
+
+    Discontinued products are left out of the count, so that it agrees with what
+    search_products offers (B-01). It counts the catalogue, not the shelf: a
+    product out of stock is still counted, because the store still sells it.
     """
     rows = conn.execute(
         """SELECT c.category_id, c.name, c.description, COUNT(p.product_id) AS n
            FROM categories c
            LEFT JOIN products p ON p.category_id = c.category_id
+                               AND p.status <> 'discontinued'
            GROUP BY c.category_id, c.name, c.description
            ORDER BY c.category_id"""
     ).fetchall()
     return [
         Category(r["category_id"], r["name"], r["description"], r["n"]) for r in rows
     ]
+
+
+# The customer asks for "aço" and the catalogue stores "steel". Without this the
+# filter silently returns nothing, and the agent reports no steel-string guitars
+# while the store has nineteen.
+STRING_MATERIALS = {"aco": "steel", "steel": "steel", "nylon": "nylon"}
 
 
 def _specs(raw: str | None) -> dict[str, str]:
@@ -104,8 +115,10 @@ def _specs(raw: str | None) -> dict[str, str]:
 def _matches_specs(
     specs: dict[str, str], strings: str | None, electronics: bool | None
 ) -> bool:
-    if strings is not None and fold(specs.get("strings")) != fold(strings):
-        return False
+    if strings is not None:
+        wanted = STRING_MATERIALS.get(fold(strings), fold(strings))
+        if fold(specs.get("strings")) != wanted:
+            return False
     if electronics is not None:
         has_electronics = fold(specs.get("electronics")) in {"yes", "sim"}
         if has_electronics != electronics:

@@ -1,3 +1,12 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+# Without this, setuptools finds data/ next to emporio/ and refuses to guess
+# which one is the package, so `pip install -e .` fails on a clean clone.
+[tool.setuptools]
+packages = ["emporio"]
+
 [project]
 name = "music-store-support-agent"
 version = "0.1.0"
