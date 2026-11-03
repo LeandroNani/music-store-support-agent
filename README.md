@@ -222,6 +222,17 @@ foi delegado, o que não foi, e as restrições que impus ao assistente, registr
 
 ## Exemplos de conversa
 
-Em **[examples/](examples/)**.
+Cinco conversas rodadas na interface, contra a base e o manual de verdade, em
+**[examples/](examples/)**. Cada print mostra a conversa e as consultas que o Tom fez
+para responder.
 
-> _Lista a preencher._
+1. **Promoção, PIX e parcelamento** — quatro números na resposta, nenhum calculado pelo
+   modelo, e o desconto tirando o produto da faixa de pagamento combinado
+2. **Entrega para outra cidade** — pergunta de política, e o Tom pedindo o CEP em vez de
+   estimar um frete que o material recebido não informa
+3. **Pedido em trânsito, com verificação de identidade** — o modelo chamou a ferramenta
+   com telefone e e-mail em branco, e não recebeu o pedido
+4. **Produto que ainda não está à venda** — lançamento futuro com estoque, uma
+   inconsistência da base, e o Tom não vendendo o que a loja não entrega
+5. **Pergunta fora do escopo da loja** — nenhuma ferramenta chamada, e o assunto de volta
+   para a loja
